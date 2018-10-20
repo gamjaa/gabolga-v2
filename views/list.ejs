@@ -1,0 +1,65 @@
+<%- include('header') %>
+<div class="container">
+  <h3>
+    내 지도(목록으로 보기)
+    <small class="text-muted">가볼가 한 장소를 목록으로 봅니다.</small>
+  </h3>
+  <table id="list" class="table table-hover">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>이름</th>
+      <th class="mobile">주소</th>
+      <th class="mobile">전화번호</th>
+      <th class="mobile">추가일</th>
+      <th>-</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (!rows.length) { %>
+        <tr>
+            <td colspan="6">앗! 가볼가 한 트윗이 없어요!</td>
+        </tr>
+    <% } else { 
+        rows.forEach((row, index) => { %>
+            <tr>
+                <th onclick="link('<%= row.tweet_id %>')" scope="row"><%= index +1 %></th>
+                <% if (!row.name) { %>
+                    <td onclick="link('<%= row.tweet_id %>')" colspan="4">장소 정보를 등록해주세요 ;^;</td>
+                <% } else { %>
+                    <td onclick="link('<%= row.tweet_id %>')"><%= row.name %></td>
+                    <% if (row.road_address) { %>
+                        <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.road_address %>(<%= row.address %>)</td>
+                    <% } else { %>
+                        <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.address %></td>
+                    <% } %>
+                    <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.phone || '-' %></td>
+                    <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= moment(row.add_time).format('YY/MM/DD') %></td>
+                <% } %>
+                <td><button id="<%= row.tweet_id %>" class="btn btn-danger list_btn" onclick="gabolga('<%= row.tweet_id %>')">가볼가 취소</button></td>
+            </tr>
+        <% })
+    } %>
+  </tbody>
+</table>
+
+<script>
+    function gabolga(tweet_id) {
+        $.get(`/api/gabolga/${tweet_id}`, function(data) {
+            if ($(`#${tweet_id}`).text() === '가볼가 하기') {
+                $(`#${tweet_id}`).text("가볼가 취소");
+                $(`#${tweet_id}`).addClass("btn-danger");
+                $(`#${tweet_id}`).removeClass("btn-primary");
+            } else {
+                $(`#${tweet_id}`).text("가볼가 하기");
+                $(`#${tweet_id}`).addClass("btn-primary");
+                $(`#${tweet_id}`).removeClass("btn-danger");
+            }
+        });
+    }
+    function link(tweet_id) {
+        window.open(`/tweet/${tweet_id}`,'','');
+    }
+    </script>
+</div>
+<%- include('footer') %>

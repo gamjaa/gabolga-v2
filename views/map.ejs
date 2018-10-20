@@ -1,0 +1,98 @@
+<%- include('header') %>
+<div style="position: fixed; top: 70px; left: 10px; width: 50px; height: 50px; z-index: 2;">
+    <a onclick="isWatch = true; getGeo(watchID);"><img src="/img/iconmonstr-crosshair-9-2402.png" width="50px" height="50px"></a>
+</div>
+<div id="map" style="width: 100%; height: calc(100vh - 56px);"></div>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ccdf52614c4fdbc279d9aa623ba3dc65&libraries=services"></script>
+<script>
+    var container = document.getElementById('map');
+    var options = {
+        center: new daum.maps.LatLng(37.566826, 126.9786567),
+        level: 4
+    };
+    var map = new daum.maps.Map(container, options);
+navigator.geolocation.getCurrentPosition(function(position) {
+    map_move(position.coords.latitude, position.coords.longitude);
+    lat = position.coords.latitude;
+    lng = position.coords.longitude;
+});
+var watchID = null;
+var isWatch = false;
+var lat, lng;
+function getGeo(watchID) {
+    if(lat != null && lng != null)
+    map_move(lat, lng);
+
+    watchID = navigator.geolocation.watchPosition(function(position) {
+    if(isWatch) {
+        map_move(position.coords.latitude, position.coords.longitude);
+        lat = position.coords.latitude;
+        lng = position.coords.longitude;
+    }
+    });
+}
+
+function map_move(lat, long) {
+    var moveLatLon = new daum.maps.LatLng(lat, long);
+    map.panTo(moveLatLon);
+}
+
+// 초기 로딩
+marker_load();
+
+daum.maps.event.addListener(map, 'dragstart', function() {
+    watchID = null;
+    isWatch = false;
+});
+daum.maps.event.addListener(map, 'dragend', function() {
+    marker_load();
+});
+daum.maps.event.addListener(map, 'zoom_changed', function() {
+    marker_load();
+});
+
+function marker_load() {
+    // 지도의 현재 영역을 얻어옵니다
+    const bounds = map.getBounds();
+    // 영역의 남서쪽 좌표를 얻어옵니다
+    const swLatLng = bounds.getSouthWest();
+    // 영역의 북동쪽 좌표를 얻어옵니다
+    const neLatLng = bounds.getNorthEast();
+
+    $.get("/api/map",{swLat:swLatLng.getLat(),swLng:swLatLng.getLng(),neLat:neLatLng.getLat(),neLng:neLatLng.getLng()},function(data){
+        for (var i = 0; i < data.length; i ++) {
+          // 마커를 생성합니다
+          var marker = new daum.maps.Marker({
+              map: map, // 마커를 표시할 지도
+              position: new daum.maps.LatLng(data[i].lat, data[i].lng) // 마커의 위치
+          });
+
+          // 마커에 표시할 인포윈도우를 생성합니다
+          var infowindow = new daum.maps.InfoWindow({
+              content: data[i].name // 인포윈도우에 표시할 내용
+          });
+
+          // 마커에 이벤트를 등록하는 함수 만들고 즉시 호출하여 클로저를 만듭니다
+          // 클로저를 만들어 주지 않으면 마지막 마커에만 이벤트가 등록됩니다
+          (function(marker, infowindow, data) {
+              // 마커에 mouseover 이벤트를 등록하고 마우스 오버 시 인포윈도우를 표시합니다
+              daum.maps.event.addListener(marker, 'mouseover', function() {
+                infowindow.open(map, marker);
+              });
+
+              // 마커에 mouseout 이벤트를 등록하고 마우스 아웃 시 인포윈도우를 닫습니다
+              daum.maps.event.addListener(marker, 'mouseout', function() {
+                infowindow.close();
+              });
+
+              // 마커에 click 이벤트를 등록합니다
+              daum.maps.event.addListener(marker, 'click', function() {
+                window.open(`/tweet/${data.tweet_id}`, '_blank');
+              });
+          })(marker, infowindow, data[i]);
+          console.log(i);
+        }
+      },"json");
+}
+</script>
+<%- include('footer') %>

@@ -1,0 +1,190 @@
+<%- include('header'); -%>
+<div id="map" style="width:100%; height:calc(100vh - 56px);">
+    <div id="map_pop">
+      <script>var tweet = false;</script>
+  
+      <button id="tweet_switch" onclick="tweet_switch(tweet);" class="btn btn-sm btn-primary" style="position: absolute; z-index: 3;">ㅡ</button>
+  
+      <div id="tweet">
+        <%- tweetHtml %>
+      </div>
+      <div id="padding"></div>
+  
+      <script>
+      document.body.scrollTop = 0;
+      if(window.innerHeight < 600) {
+        tweet = false;
+        tweet_switch(tweet);
+      }
+      $(window).resize(function() {
+        document.body.scrollTop = 0;
+        if(window.innerHeight < 600) {
+          tweet = false;
+          tweet_switch(tweet);
+        } else {
+          tweet = true;
+          tweet_switch(tweet);
+        }
+      });
+      function tweet_switch(i) {
+        if(i) {
+          $("#tweet").css("display", "block");
+          $("#tweet_switch").text("ㅡ");
+          $("#padding").css("padding-bottom", "0");
+          tweet = false;
+        } else {
+          $("#tweet").css("display", "none");
+          $("#tweet_switch").text("ㅁ");
+          $("#padding").css("padding-bottom", "30px");
+          tweet = true;
+        }
+      }
+      </script>
+  
+      <% if (!req.session.isLogin && !isRegistered) { %>
+      <div class="alert alert-primary center" role="alert">
+        <a href="/login?refer=<%= req.originalUrl %>">로그인해서 장소를 등록해주세요!</a>
+      </div>
+      <% } %>
+  
+      <div id="data" style="width:100%;">
+        <% if (isRegistered) { %>
+        <div id="gabolga">
+          <h3><%= name %></h3>
+          <% if (roadAddress) { %>
+            <%= roadAddress %> <button class="btn btn-link btn-sm copy" data-clipboard-text="<%= roadAddress %>">클립보드에 복사</button><br>
+            (<%= address %>) <button class="btn btn-link btn-sm copy" data-clipboard-text="<%= address %>">클립보드에 복사</button><br>
+          <% } else { %>
+            <%= address %> <button class="btn btn-link btn-sm copy" data-clipboard-text="<%= address %>">클립보드에 복사</button><br>
+          <% } %>
+  
+          <% if (phone) { %>
+            <%= phone %> <button class="btn btn-link btn-sm copy" data-clipboard-text="<%= phone %>">클립보드에 복사</button><br>
+          <% } %>
+  
+          <% if (isGabolga) { %>
+            <br>
+            <button id="btn_gabolga" class="btn btn-danger" onclick="gabolga()">가볼가 취소</button>
+          <% } else if (req.session.isLogin) { %>
+            <br>
+            <button id="btn_gabolga" class="btn btn-primary" onclick="gabolga()">가볼가 하기</button>
+          <% } else { %>
+            <div class="alert alert-primary center" role="alert" >
+              <a href="/login?refer=<%= req.originalUrl %>">로그인해서 내 지도에 등록해보세요!</a>
+            </div>
+          <% } %>
+        </div>
+        <% } %>
+  
+        <% if (!isRegistered && req.session.isLogin) { %>
+        <div class="option">
+          <form onsubmit="searchPlaces(); return false;">
+            <div class="input-group">
+              <input type="text" id="keyword" placeholder="장소명" size="15" class="form-control">
+              <span class="input-group-btn">
+                <button class="btn btn-primary" type="submit">검색</button>
+              </span>
+            </div>
+          </form>
+        </div>
+        <ul id="placesList" style="height: 200px; overflow-y: auto;">
+        트윗에 해당하는 장소를 등록해주세요 ;^;<br><br>
+        1. 트윗 내용에 맞는 장소명을 검색한다.<br>
+        2. 해당하는 장소를 리스트나 지도에서 클릭한다.
+        </ul>
+        <div id="pagination"></div>
+        <% } %>
+      </div>
+    </div>
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ccdf52614c4fdbc279d9aa623ba3dc65&libraries=services"></script>
+  
+  <% if (!isRegistered) { %>
+  <script type="text/javascript" src="/js/tweet_no_data.js"></script>
+  <script>
+  // 검색 결과 목록과 마커를 표출하는 함수입니다
+  function displayPlaces(places) {
+      var listEl = document.getElementById('placesList'),
+      menuEl = document.getElementById('menu_wrap'),
+      fragment = document.createDocumentFragment(),
+      bounds = new daum.maps.LatLngBounds(),
+      listStr = '';
+      // 검색 결과 목록에 추가된 항목들을 제거합니다
+      removeAllChildNods(listEl);
+      // 지도에 표시되고 있는 마커를 제거합니다
+      removeMarker();
+      for ( var i=0; i<places.length; i++ ) {
+          // 마커를 생성하고 지도에 표시합니다
+          var placePosition = new daum.maps.LatLng(places[i].y, places[i].x),
+              marker = addMarker(placePosition, i),
+              itemEl = getListItem(i, places[i]); // 검색 결과 항목 Element를 생성합니다
+          // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해 LatLngBounds 객체에 좌표를 추가합니다
+          bounds.extend(placePosition);
+          // 마커와 검색결과 항목에 mouseover 했을때 해당 장소에 인포윈도우에 장소명을 표시합니다 mouseout 했을 때는 인포윈도우를 닫습니다
+          (function(marker, position, title, addr, road_addr, tel, x, y) {
+              // 마커에 click 이벤트를 등록합니다
+              daum.maps.event.addListener(marker, 'click', function() {
+                if(confirm(title + "(으)로 등록하시겠습니까?")) {
+                  $.ajax('/tweet/<%= id %>', { method: 'PUT', data: {name: title, address: addr, road_address: road_addr, phone: tel, lat: y, lng: x}}).done(() => location.reload(true));
+                }
+              });
+              itemEl.onclick = function () {
+                if(confirm(title + "(으)로 등록하시겠습니까?")) {
+                  $.ajax("/tweet/<%= id %>", { method: 'PUT', data: {name: title, address: addr, road_address: road_addr, phone: tel, lat: y, lng: x}}).done(() => location.reload(true));
+                }
+              };
+  
+              daum.maps.event.addListener(marker, 'mouseover', function() {
+                  displayInfowindow(marker, null, title);
+              });
+              daum.maps.event.addListener(marker, 'mouseout', function() {
+                  infowindow.close();
+              });
+              itemEl.onmouseover =  function () {
+                  displayInfowindow(marker, position, title);
+              };
+              itemEl.onmouseout =  function () {
+                  infowindow.close();
+              };
+          })(marker, placePosition, places[i].place_name, places[i].address_name, places[i].road_address_name, places[i].phone, places[i].x, places[i].y);
+  
+          fragment.appendChild(itemEl);
+      }
+      // 검색결과 항목들을 검색결과 목록 Elemnet에 추가합니다
+      listEl.appendChild(fragment);
+      menuEl.scrollTop = 0;
+      // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
+      map.setBounds(bounds);
+  }
+  </script>
+  <% } %>
+  
+  <% if (isRegistered) { %>
+  <script>
+  new Clipboard('.copy');
+  var container = document.getElementById('map');
+  var options = {
+    center: new daum.maps.LatLng(<%= lat %>, <%= lng %>),
+    level: 3
+  };
+  var map = new daum.maps.Map(container, options);
+  var marker = new daum.maps.Marker({
+      map: map, position: new daum.maps.LatLng(<%= lat %>, <%= lng %>)
+  });
+  
+  function gabolga() {
+    $.get("/api/gabolga/<%= id %>", function(data) {
+      if($("#btn_gabolga").text() == "가볼가 하기") {
+        $("#btn_gabolga").text("가볼가 취소");
+        $("#btn_gabolga").addClass("btn-danger");
+        $("#btn_gabolga").removeClass("btn-primary");
+      } else {
+        $("#btn_gabolga").text("가볼가 하기");
+        $("#btn_gabolga").addClass("btn-primary");
+        $("#btn_gabolga").removeClass("btn-danger");
+      }
+    });
+  }
+  </script>
+  <% } %>
+</div>
+<%- include('footer'); -%>
