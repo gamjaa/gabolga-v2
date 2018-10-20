@@ -28,6 +28,7 @@
             "always"
         ],
         "no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
-        "no-var": "warn"
+        "no-var": "warn",
+        "no-console": "off"
     }
 }

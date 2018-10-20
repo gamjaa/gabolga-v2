@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const _ = require('lodash');
 const cryptojs = require('crypto-js');
 const twit = require('twit');
 const botConfig = require('config').get('bot');
@@ -31,7 +32,6 @@ router.post('/', function(req, res, next) {
         return res.status(400).send();
     }
     
-    console.log(JSON.stringify(req.body));
     // DM
     if (req.body.direct_message_events && 
         req.body.direct_message_events[0].message_create.sender_id !== '903176813517479936') {
@@ -47,16 +47,23 @@ router.post('/', function(req, res, next) {
                     }
                 }
             }
-        }, (err, result) => {
+        }, (err) => {
             if (err) {
-                console.log(err);
+                console.error('DM Error:', err);
+                return res.status(500).send();
             }
-
+            
             return res.status(200).send();
         });
         
-        const url = req.body.direct_message_events[0].message_create.message_data.entities.urls[0].expanded_url;
+        const url = _.get(req.body, 'direct_message_events[0].message_create.message_data.entities.urls[0].expanded_url');
         if (!url || !statusIdRegex.test(url)) {
+            db.query('INSERT INTO dm (dm_id, user_id, is_tweet) VALUES (?, ?, ?)', 
+                [req.body.direct_message_events[0].id, req.body.direct_message_events[0].message_create.sender_id, false], (err) => {
+                    if (err) {
+                        console.error('DB Error:', err);
+                    }
+                });
             return sendDM('궁금한 점이나 건의할 사항이 있으시다면 멘션이나 @_gamjaa으로 DM 보내주세요! 감사합니다.');
         }
 
@@ -64,12 +71,24 @@ router.post('/', function(req, res, next) {
         return db.query('SELECT name FROM tweet WHERE tweet_id=?', [id], 
             (err, rows) => {
                 if (err) {
-                    console.log(err);
+                    console.error('DB Error:', err);
+                    return res.status(500).send();
                 }
 
                 db.query('INSERT INTO my_map (user_id, tweet_id) VALUES (?, ?)',
-                    [req.body.direct_message_events[0].message_create.sender_id, id]);
-                
+                    [req.body.direct_message_events[0].message_create.sender_id, id], (err) => {
+                        if (err) {
+                            console.error('DB Error:', err);
+                        }
+                    });
+
+                db.query('INSERT INTO dm (dm_id, user_id, is_tweet) VALUES (?, ?, ?)', 
+                    [req.body.direct_message_events[0].id, req.body.direct_message_events[0].message_create.sender_id, true], (err) => {
+                        if (err) {
+                            console.error('DB Error:', err);
+                        }
+                    });
+    
                 const text = !rows.length 
                     ? `아직 가볼가에 등록되지 않은 트윗이에요. 직접 등록해주시면 ${req.body.users[req.body.direct_message_events[0].message_create.sender_id].name} 님의 지도에 장소가 기록된답니다!\nhttps://gabolga.gamjaa.com/tweet/${id}?unregistered`
                     : `${req.body.users[req.body.direct_message_events[0].message_create.sender_id].name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`;
@@ -91,9 +110,10 @@ router.post('/', function(req, res, next) {
                     }
                 }
             }
-        }, (err, result) => {
+        }, (err) => {
             if (err) {
-                console.log(err);
+                console.error('DM Error:', err);
+                return res.status(500).send();
             }
 
             return res.status(200).send();
