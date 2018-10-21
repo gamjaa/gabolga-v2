@@ -6,6 +6,7 @@ const config = require('config');
 const hostname = config.get('domain');
 const twitConfig = config.get('twitter');
 const db = require('./common/db');
+const wrapAsync = require('./common/wrapAsync');
 
 // GET /
 router.get('/', function(req, res, next) {
@@ -16,12 +17,11 @@ router.get('/', function(req, res, next) {
 });
 
 // GET /random
-router.get('/random', function(req, res, next) {
-    return db.query('SELECT tweet_id FROM tweet WHERE name IS NOT NULL',
-        (err, rows) => {
-            return res.redirect(`/tweet/${rows[_.random(rows.length - 1, false)].tweet_id}`);
-        });
-});
+router.get('/random', wrapAsync(async (req, res, next) => {
+    const [rows] = await db.query('SELECT tweet_id FROM tweet WHERE name IS NOT NULL');
+
+    return res.redirect(`/tweet/${rows[_.random(rows.length - 1, false)].tweet_id}`);
+}));
 
 // GET /login
 router.get('/login', function(req, res, next) {
@@ -75,12 +75,8 @@ router.get('/callback', function(req, res, next) {
                 VALUES (?, ?, ?, ?) 
                 ON DUPLICATE KEY UPDATE screen_name=?, oauth_token=?, oauth_token_secret=?`, 
             [results.user_id, results.screen_name, oauth_token, oauth_token_secret, 
-                results.screen_name, oauth_token, oauth_token_secret],
-            (err) => {
-                if (err) {
-                    return res.status(400).send(err);
-                }
-
+                results.screen_name, oauth_token, oauth_token_secret]
+            ).then(() => {
                 req.session.isLogin = true;
                 req.session.user_id = results.user_id;
                 req.session.screen_name = results.screen_name;

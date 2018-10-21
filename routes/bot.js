@@ -49,7 +49,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [quickReply, senderId]);
 
                 await sendDM(senderId, {
-                    text: '검색 키워드를 전송해주세요. ex) 은행동 성심당'
+                    text: '검색 키워드를 전송해주세요. ex) 대전 은행동 성심당'
                 });
 
                 return res.status(200).send();
@@ -71,7 +71,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 const {place_name, address_name, road_address_name, phone, x, y} = JSON.parse(quickReply);
                 await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-                [tweetId, place_name, address_name, road_address_name, phone, x, y, senderId]);
+                [tweetId, place_name, address_name, road_address_name, phone, y, x, senderId]);
+                await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
 
                 await sendDM(senderId, {
                     text: `${req.body.users[senderId].name} 님의 지도에 '${place_name}'이(가) 등록되었습니다! 감사합니다.\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
@@ -110,7 +111,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     options: [
                         ...places,
                         {
-                            label: '등록 취소'
+                            label: '등록 취소',
+                            description: '등록 과정을 취소합니다'
                         }
                     ]
                 }

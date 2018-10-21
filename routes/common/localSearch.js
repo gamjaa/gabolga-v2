@@ -10,4 +10,4 @@ module.exports = (query) => request.get('https://dapi.kakao.com/v2/local/search/
         size: 5
     },
     json: true
-}).then((err, result, body) => body);
+});
