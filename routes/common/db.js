@@ -1,7 +1,4 @@
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const dbConfig = require('config').get('db');
-const connection = mysql.createConnection(dbConfig);
-  
-connection.connect();
-
-module.exports = connection;
+const pool = mysql.createPool(dbConfig);
+module.exports = pool.promise();

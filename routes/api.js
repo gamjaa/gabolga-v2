@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('./common/db');
+const wrapAsync = require('./common/wrapAsync');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
 
 // GET /api/map
-router.get('/map', function(req, res, next) {
+router.get('/map', wrapAsync(async (req, res, next) => {
     if (!req.session.isLogin) {
         return res.status(400).send();
     }
@@ -15,15 +16,13 @@ router.get('/map', function(req, res, next) {
         return res.status(400).send();
     }
 
-    return db.query(`SELECT tweet.tweet_id, name, lat, lng 
+    const [rows] = await db.query(`SELECT tweet.tweet_id, name, lat, lng 
         FROM my_map
         JOIN tweet ON my_map.tweet_id=tweet.tweet_id
         WHERE user_id=? AND lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?`,
-    [req.session.user_id, req.query.swLat, req.query.neLat, req.query.swLng, req.query.neLng],
-    (err, rows) => {
-        return res.json(rows);
-    });
-});
+    [req.session.user_id, req.query.swLat, req.query.neLat, req.query.swLng, req.query.neLng]);
+    return res.json(rows);
+}));
 
 // GET /api/tweet
 router.get('/tweet', function(req, res, next) {
