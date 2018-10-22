@@ -16,6 +16,14 @@ router.get('/', function(req, res, next) {
     });
 });
 
+// GET /guide
+router.get('/guide', function(req, res, next) {
+    return res.render('guide', { 
+        req,
+        title: '사용법'
+    });
+});
+
 // GET /random
 router.get('/random', wrapAsync(async (req, res, next) => {
     const [rows] = await db.query('SELECT tweet_id FROM tweet WHERE name IS NOT NULL');

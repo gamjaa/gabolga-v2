@@ -44,7 +44,10 @@
           </li>
         <% } %>
         <li class="nav-item">
-          <a class="nav-link <%= req.session.isLogin ? '' : 'text-dark' %>" href="/random" title="등록된 트윗을 랜덤으로 보여드립니다!">랜덤 트윗</a>
+          <a class="nav-link" href="/random" title="등록된 트윗을 랜덤으로 보여드립니다!">랜덤 트윗</a>
+        </li>
+        <li class="nav-item <%= req.path === '/list' ? 'active' : '' %>">
+            <a class="nav-link text-dark" href="/guide" title="가볼가 사용 안내">사용법</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="https://twitter.com/GABOLGA_bot" target="_blank" title="DM으로 편하게 등록하세요!">@GABOLGA_bot(새 창)</a>
