@@ -49,7 +49,17 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [quickReply, senderId]);
 
                 await sendDM(senderId, {
-                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! ex) 대전 은행동 성심당`
+                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! ex) 대전 은행동 성심당`,
+                    quick_reply: {
+                        type: 'options',
+                        options: [
+                            {
+                                label: '등록 취소',
+                                description: '등록 과정을 취소합니다',
+                                metadata: `{"isClose": "${req.body.direct_message_events[0].id}"}`
+                            }
+                        ]
+                    }
                 });
 
                 return res.status(200).send();
