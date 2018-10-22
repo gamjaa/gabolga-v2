@@ -91,6 +91,12 @@ router.get('/callback', function(req, res, next) {
                 req.session.oauth_token = oauth_token;
                 req.session.oauth_token_secret = oauth_token_secret;
 
+                return db.query('SELECT has_setting FROM users WHERE user_id=?', [results.user_id]);
+            }).then(rows => {
+                if (!rows[0].has_setting) {
+                    return res.redirect(`/my/setting?refer=${refer}`);
+                }
+
                 return res.redirect(refer);
             });
         });

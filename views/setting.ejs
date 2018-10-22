@@ -1,0 +1,54 @@
+<%- include('header') %>
+<div class="container">
+    <h3>
+        설정
+        <small class="text-muted"><%= name %> 님의 가볼가 기능을 설정합니다.</small>
+    </h3>
+    <form class="form" id="form" action="<%= req.originalUrl %>" method="post">
+        <div class="form-group row">
+            <label class="col-sm-2 control-label">알림 트윗 게시</label>
+            <div class="col-sm-10">
+            <input type="checkbox" name="is_auto_tweet" <%= isAutoTweet ? 'checked' : '' %>>
+            <small id="helpBlock" class="form-text text-muted">가볼가에 새로운 장소를 등록했을 때, 자신의 계정에 트윗을 게시합니다.</small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 control-label">등록자 익명 표시</label>
+            <div class="col-sm-10">
+            <input type="checkbox" name="is_anonymous" <%= isAnonymous ? 'checked' : '' %>>
+            <small id="helpBlock" class="form-text text-muted">(추후 사용 예정) 직접 등록한 장소 페이지에서 등록자를 익명으로 표시합니다.</small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 control-label">가볼가 팔로우</label>
+            <div class="col-sm-10">
+            <a href="https://twitter.com/intent/followt?screen_name=GABOLGA_bot" class="twitter-follow-button" data-lang="ko" data-size="large" data-related="GABOLGA_bot" data-dnt="true">Follow @GABOLGA_bot</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+            <small id="helpBlock" class="form-text text-muted">가볼가 계정을 팔로우하면 더 편리하게 이용하실 수 있습니다.</small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 control-label">문의/건의사항 등</label>
+            <div class="col-sm-10">
+            <a href="https://twitter.com/intent/tweet?screen_name=GABOLGA_bot" class="twitter-mention-button" data-lang="ko" data-size="large" data-related="GABOLGA_bot" data-dnt="true">Tweet to @GABOLGA_bot</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+            <small id="helpBlock" class="form-text text-muted">또는 <a href="https://twitter.com/_gamjaa" target="_blank">@_gamjaa</a> 계정에 DM으로 보내셔도 됩니다.</small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-offset-2 col-sm-10">
+            <button class="btn btn-primary btn-lg" type="submit" data-loading-text="저장 중..." autocomplete="off" id="submit">저장<%= hasRefer ? ' 후 돌아가기' : '' %></button>
+            </div>
+        </div>
+    </form>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.4/js/bootstrap-switch.min.js"></script>
+<script>
+    $("[name='is_auto_tweet']").bootstrapSwitch();
+    $("[name='is_anonymous']").bootstrapSwitch();
+</script>
+<%- include('footer') %>

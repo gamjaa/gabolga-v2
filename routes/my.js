@@ -41,4 +41,40 @@ router.get('/list', wrapAsync(async (req, res, next) => {
     });
 }));
 
+// GET /my/setting
+router.get('/setting', wrapAsync(async (req, res, next) => {
+    if (!req.session.isLogin) {
+        return res.redirect(`/login?refer=${req.originalUrl}`);
+    }
+
+    const [rows] = await db.query('SELECT has_setting, is_auto_tweet, is_anonymous FROM users WHERE user_id=?', [req.session.user_id]);
+
+    return res.render('setting', { 
+        req,
+        title: '내 지도(목록으로 보기)',
+
+        name: req.session.screen_name,
+        hasRefer: req.query.refer,
+        isAutoTweet: !rows[0].has_setting || rows[0].is_auto_tweet,
+        isAnonymous: rows[0].has_setting && rows[0].is_anonymous
+    });
+}));
+
+// POST /my/setting
+router.post('/setting', wrapAsync(async (req, res, next) => {
+    if (!req.session.isLogin) {
+        return res.redirect(`/login?refer=${req.originalUrl}`);
+    }
+
+    const isAutoTweet = req.body.is_auto_tweet ? true : false;
+    const isAnonymous = req.body.is_anonymous ? true : false;
+    await db.query('UPDATE users SET has_setting=?, is_auto_tweet=?, is_anonymous=? WHERE user_id=?', [true, isAutoTweet, isAnonymous, req.session.user_id]);
+
+    if (req.query.refer) {
+        return res.redirect(req.query.refer);
+    }
+
+    return res.redirect(req.originalUrl);
+}));
+
 module.exports = router;

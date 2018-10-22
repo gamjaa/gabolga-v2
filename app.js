@@ -7,7 +7,6 @@ const logger = require('morgan');
 const config = require('config');
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
 const tweetRouter = require('./routes/tweet');
 const myRouter = require('./routes/my');
 const apiRouter = require('./routes/api');
@@ -36,7 +35,6 @@ const sessionStore = new mysqlStore(config.get('db'));
 app.use(session(Object.assign({ store: sessionStore }, config.get('session'))));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/tweet', tweetRouter);
 app.use('/my', myRouter);
 app.use('/api', apiRouter);
