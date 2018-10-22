@@ -55,7 +55,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 return res.status(200).send();
             }
 
-            if (text === '등록 취소') {
+            const {place_name, address_name, road_address_name, phone, x, y, isClose} = JSON.parse(quickReply);
+            if (isClose) {
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
 
                 await sendDM(senderId, {
@@ -68,7 +69,6 @@ router.post('/', wrapAsync(async (req, res, next) => {
             const [user] = await db.query('SELECT search_tweet_id FROM users WHERE user_id=?', [senderId]);
             const tweetId = _.get(user, '[0].search_tweet_id');
             if (tweetId) {
-                const {place_name, address_name, road_address_name, phone, x, y} = JSON.parse(quickReply);
                 await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
                 [tweetId, place_name, address_name, road_address_name, phone, y, x, senderId]);
@@ -112,7 +112,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
                         ...places,
                         {
                             label: '등록 취소',
-                            description: '등록 과정을 취소합니다'
+                            description: '등록 과정을 취소합니다',
+                            metadata: '{"isClose": true}'
                         }
                     ]
                 }
