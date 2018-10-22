@@ -107,4 +107,8 @@ router.get('/logout', function(req, res, next) {
     return res.redirect(req.query.refer || '/');
 });
 
+router.get('*.php', function(req, res, next) {
+    return res.redirect('/');
+});
+
 module.exports = router;
