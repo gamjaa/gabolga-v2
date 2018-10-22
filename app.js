@@ -2,6 +2,7 @@ const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const mysqlStore = require('express-mysql-session')(session);
 const logger = require('morgan');
 const config = require('config');
 
@@ -30,7 +31,9 @@ app.use(logger('dev'));
 app.use(express.json({ verify: rawBodySaver }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session(config.get('session')));
+
+const sessionStore = new mysqlStore(config.get('db'));
+app.use(session(Object.assign({ store: sessionStore }, config.get('session'))));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
