@@ -105,7 +105,9 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 };
             });
             await sendDM(senderId, {
-                text: '검색된 장소들입니다. 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있습니다.',
+                text: places.length 
+                    ? '검색된 장소들입니다. 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있습니다.'
+                    : '검색 결과가 없습니다. 다른 키워드로 다시 검색해주세요.',
                 quick_reply: {
                     type: 'options',
                     options: [
