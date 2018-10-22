@@ -127,7 +127,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
         const id = statusIdRegex.exec(url)[1];
         const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
 
-        await db.query('INSERT INTO my_map (user_id, tweet_id) VALUES (?, ?)',
+        await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)',
             [senderId, id]);
     
         if (rows.length) {
