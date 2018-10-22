@@ -3,11 +3,11 @@ const router = express.Router();
 const wrapAsync = require('./common/wrapAsync');
 const _ = require('lodash');
 const cryptojs = require('crypto-js');
-const twit = require('twit');
 const botConfig = require('config').get('bot');
-const T = new twit(botConfig);
+const T = new require('twit')(botConfig);
 const db = require('./common/db');
 const localSearch = require('./common/localSearch');
+const twit = require('./common/twit');
 
 const statusIdRegex = /status\/([0-9]+)/;
 
@@ -49,7 +49,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [quickReply, senderId]);
 
                 await sendDM(senderId, {
-                    text: '검색 키워드를 전송해주세요. ex) 대전 은행동 성심당'
+                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! ex) 대전 은행동 성심당`
                 });
 
                 return res.status(200).send();
@@ -66,18 +66,34 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 return res.status(200).send();
             }
 
-            const [user] = await db.query('SELECT search_tweet_id FROM users WHERE user_id=?', [senderId]);
-            const tweetId = _.get(user, '[0].search_tweet_id');
+            const [users] = await db.query('SELECT oauth_token, oauth_token_secret, search_tweet_id, is_auto_tweet FROM users WHERE user_id=?', [senderId]);
+            const tweetId = _.get(users, '[0].search_tweet_id');
             if (tweetId) {
                 await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
                 [tweetId, place_name, address_name, road_address_name, phone, y, x, senderId]);
-                await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
-
+                
                 await sendDM(senderId, {
                     text: `${req.body.users[senderId].name} 님의 지도에 '${place_name}'이(가) 등록되었습니다! 감사합니다.\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
                 });
+                
+                const {data} = await T.get('statuses/show', {
+                    id: tweetId
+                });
+                await T.post('statuses/update', {
+                    status: `@${data.user.screen_name} #가볼가 에서 '${place_name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                    in_reply_to_status_id: tweetId
+                });
+                
+                if (users[0].is_auto_tweet) {
+                    const T = twit(users[0].oauth_token, users[0].oauth_token_secret);
+                    await T.post('statuses/update', {
+                        status: `#가볼가 에 '${place_name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                    });
+                }
 
+                await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
+                
                 return res.status(200).send();
             }
         }

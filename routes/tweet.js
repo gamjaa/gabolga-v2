@@ -3,6 +3,9 @@ const router = express.Router();
 const _ = require('lodash');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
+const twit = require('./common/twit');
+const botConfig = require('config').get('bot');
+const botT = new require('twit')(botConfig);
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -26,8 +29,8 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         LEFT JOIN my_map ON (tweet.tweet_id=my_map.tweet_id AND my_map.user_id='${req.session.user_id}')
         WHERE tweet.tweet_id=?`;
     const [rows] = await db.query(query, [id]);
-    const twit = require('./common/twit')();
-    const result = await twit.get('statuses/oembed', {
+    const T = twit();
+    const result = await T.get('statuses/oembed', {
         id, 
         hide_media: true, 
         hide_thread: true, 
@@ -80,6 +83,22 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
     [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.lat, req.body.lng, req.session.user_id]);
+
+    const {data} = await botT.get('statuses/show', {
+        id
+    });
+    await botT.post('statuses/update', {
+        status: `@${data.user.screen_name} #가볼가 에서 '${req.body.name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+        in_reply_to_status_id: id
+    });
+
+    const [users] = await db.query('SELECT is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);
+    if (users[0].is_auto_tweet) {
+        const T = twit(req.session.oauth_token, req.session.oauth_token_secret);
+        await T.post('statuses/update', {
+            status: `#가볼가 에 '${req.body.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+        });
+    }
             
     return res.status(200).send();
 }));
