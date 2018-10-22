@@ -3,11 +3,15 @@ const router = express.Router();
 const wrapAsync = require('./common/wrapAsync');
 const _ = require('lodash');
 const cryptojs = require('crypto-js');
-const botConfig = require('config').get('bot');
-const T = new require('twit')(botConfig);
+const config = require('config');
+const twit = require('twit');
+const dmBotConfig = config.get('bot.dm');
+const dmT = new twit(dmBotConfig);
+const postBotConfig = config.get('bot.post');
+const postT = new twit(postBotConfig);
 const db = require('./common/db');
 const localSearch = require('./common/localSearch');
-const twit = require('./common/twit');
+const getNewTwit = require('./common/twit');
 
 const statusIdRegex = /status\/([0-9]+)/;
 
@@ -15,7 +19,7 @@ const statusIdRegex = /status\/([0-9]+)/;
 router.get('/', (req, res, next) => {
     if (req.query.crc_token) {
         return res.json({
-            response_token: `sha256=${cryptojs.enc.Base64.stringify(cryptojs.HmacSHA256(req.query.crc_token, botConfig.consumer_secret))}`
+            response_token: `sha256=${cryptojs.enc.Base64.stringify(cryptojs.HmacSHA256(req.query.crc_token, dmBotConfig.consumer_secret))}`
         });
     }
 
@@ -29,7 +33,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
         return res.status(403).send();
     }
 
-    const headerCheck = `sha256=${cryptojs.enc.Base64.stringify(cryptojs.HmacSHA256(req.rawBody, botConfig.consumer_secret))}`;
+    const headerCheck = `sha256=${cryptojs.enc.Base64.stringify(cryptojs.HmacSHA256(req.rawBody, dmBotConfig.consumer_secret))}`;
     if (header !== headerCheck) {
         return res.status(403).send();
     }
@@ -87,21 +91,21 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     text: `${req.body.users[senderId].name} 님의 지도에 '${place_name}'이(가) 등록되었습니다! 감사합니다.\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
                 });
                 
-                const {data} = await T.get('statuses/show', {
+                const {data} = await postT.get('statuses/show', {
                     id: tweetId
                 });
-                await T.post('statuses/update', {
-                    status: `@${data.user.screen_name} #가볼가 에서 '${place_name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                await postT.post('statuses/update', {
+                    status: `@${data.user.screen_name} ${place_name}\n${road_address_name}\n#가볼가 에서 '${place_name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
                     in_reply_to_status_id: tweetId
-                });
+                }).catch(err => console.log(err));
                 
                 if (users[0].is_auto_tweet) {
-                    const T = twit(users[0].oauth_token, users[0].oauth_token_secret);
+                    const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
                     await T.post('statuses/update', {
                         status: `#가볼가 에 '${place_name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
                     });
                 }
-
+                
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
                 
                 return res.status(200).send();
@@ -141,7 +145,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                         {
                             label: '등록 취소',
                             description: '등록 과정을 취소합니다',
-                            metadata: '{"isClose": true}'
+                            metadata: `{"isClose": "${req.body.direct_message_events[0].id}"}`
                         }
                     ]
                 }
@@ -194,7 +198,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
 module.exports = router;
 
 async function sendDM(target_id, message_data) {
-    return T.post('direct_messages/events/new', {
+    return dmT.post('direct_messages/events/new', {
         event: {
             type: 'message_create',
             message_create: {

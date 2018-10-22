@@ -4,8 +4,8 @@ const _ = require('lodash');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 const twit = require('./common/twit');
-const botConfig = require('config').get('bot');
-const botT = new require('twit')(botConfig);
+const postBotConfig = require('config').get('bot.post');
+const postT = new require('twit')(postBotConfig);
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -84,13 +84,13 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
     [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.lat, req.body.lng, req.session.user_id]);
 
-    const {data} = await botT.get('statuses/show', {
+    const {data} = await postT.get('statuses/show', {
         id
     });
-    await botT.post('statuses/update', {
-        status: `@${data.user.screen_name} #가볼가 에서 '${req.body.name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+    await postT.post('statuses/update', {
+        status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address}\n#가볼가 에서 '${req.body.name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
         in_reply_to_status_id: id
-    });
+    }).catch(err => console.error(err));
 
     const [users] = await db.query('SELECT is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);
     if (users[0].is_auto_tweet) {

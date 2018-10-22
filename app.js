@@ -14,6 +14,7 @@ const newRouter = require('./routes/new');
 const webhookRouter = require('./routes/bot');
 
 const app = express();
+app.enable('trust proxy');
 
 const rawBodySaver = function (req, res, buf, encoding) {
     if (buf && buf.length) {
@@ -25,7 +26,7 @@ const rawBodySaver = function (req, res, buf, encoding) {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use(logger('dev'));
+app.use(logger(process.env.NODE_ENV === 'development' ? 'dev' : 'common'));
 
 app.use(express.json({ verify: rawBodySaver }));
 app.use(express.urlencoded({ extended: false }));
