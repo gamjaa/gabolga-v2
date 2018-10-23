@@ -122,7 +122,19 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
             if (!user.length || !user[0].search_tweet_id) {
                 await sendDM(senderId, {
-                    text: '궁금한 점이나 건의할 사항이 있으시다면 멘션이나 @_gamjaa으로 DM 보내주세요! 감사합니다.'
+                    text: '궁금한 점이나 건의할 사항이 있으시다면 멘션이나 @_gamjaa로 DM 보내주세요! 감사합니다.',
+                    ctas: [
+                        {
+                            type: 'web_url',
+                            label: '멘션 보내기',
+                            url: 'https://twitter.com/intent/tweet?text=@GABOLGA_bot%20'
+                        },
+                        {
+                            type: 'web_url',
+                            label: '@_gamjaa로 DM 보내기',
+                            url: 'https://twitter.com/messages/compose?recipient_id=62192325'
+                        },
+                    ]
                 });
     
                 return res.status(200).send();
@@ -169,12 +181,20 @@ router.post('/', wrapAsync(async (req, res, next) => {
             });
         } else {
             await sendDM(senderId, {
-                text: `아직 가볼가에 등록되지 않은 트윗이에요. ${req.body.users[senderId].name} 님께서 직접 등록해보는 건 어떨까요? DM으로 바로 등록할 수도 있습니다.\nhttps://gabolga.gamjaa.com/tweet/${id}?unregistered`,
+                text: `아직 가볼가에 등록되지 않은 트윗이에요. ${req.body.users[senderId].name} 님께서 직접 등록해보는 건 어떨까요? DM으로 바로 등록할 수도 있습니다.`,
+                ctas: [
+                    {
+                        type: 'web_url',
+                        label: '사이트에서 등록하기',
+                        url: `https://gabolga.gamjaa.com/tweet/${id}?unregistered`
+                    },
+                ],
                 quick_reply: {
                     type: 'options',
                     options: [
                         {
                             label: 'DM으로 바로 등록하기',
+                            description: '(추천) 현재 화면에서 대화하듯이 등록할 수 있습니다.',
                             metadata: id
                         }
                     ]
