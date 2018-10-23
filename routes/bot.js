@@ -3,6 +3,7 @@ const router = express.Router();
 const wrapAsync = require('./common/wrapAsync');
 const _ = require('lodash');
 const cryptojs = require('crypto-js');
+const moment = require('moment');
 const config = require('config');
 const twit = require('twit');
 const dmBotConfig = config.get('bot.dm');
@@ -97,10 +98,15 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 const {data} = await postT.get('statuses/show', {
                     id: tweetId
                 });
-                await postT.post('statuses/update', {
-                    status: `@${data.user.screen_name} ${place_name}\n${road_address_name || address_name}\n#가볼가 에서 '${place_name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
-                    in_reply_to_status_id: tweetId
-                }).catch(err => console.log(err));
+                const nowDate = moment();
+                const tweetDate = moment(data.created_at);
+                if (data.retweet_count >= 100 
+                    || (moment.duration(nowDate.diff(tweetDate)).asDays() <= 7 && data.retweet_count >= 20)) {
+                    await postT.post('statuses/update', {
+                        status: `@${data.user.screen_name} ${place_name}\n${road_address_name || address_name}\n#가볼가 에서 '${place_name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                        in_reply_to_status_id: tweetId
+                    }).catch(err => console.log(err));
+                }
                 
                 if (users[0].is_auto_tweet) {
                     const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);

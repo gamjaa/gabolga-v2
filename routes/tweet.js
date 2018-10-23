@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const _ = require('lodash');
+const moment = require('moment');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 const twit = require('./common/twit');
@@ -87,10 +88,15 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     const {data} = await postT.get('statuses/show', {
         id
     });
-    await postT.post('statuses/update', {
-        status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 '${req.body.name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
-        in_reply_to_status_id: id
-    }).catch(err => console.error(err));
+    const nowDate = moment();
+    const tweetDate = moment(data.created_at);
+    if (data.retweet_count >= 100 
+        || (moment.duration(nowDate.diff(tweetDate)).asDays() <= 7 && data.retweet_count >= 20)) {
+        await postT.post('statuses/update', {
+            status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 '${req.body.name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+            in_reply_to_status_id: id
+        }).catch(err => console.error(err));
+    }
 
     const [users] = await db.query('SELECT is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);
     if (users[0].is_auto_tweet) {
