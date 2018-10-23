@@ -88,7 +88,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         id
     });
     await postT.post('statuses/update', {
-        status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address}\n#가볼가 에서 '${req.body.name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+        status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 '${req.body.name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
         in_reply_to_status_id: id
     }).catch(err => console.error(err));
 

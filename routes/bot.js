@@ -50,7 +50,10 @@ router.post('/', wrapAsync(async (req, res, next) => {
         const quickReply = _.get(req.body, 'direct_message_events[0].message_create.message_data.quick_reply_response.metadata');
         if (quickReply) {
             if (text === 'DM으로 바로 등록하기') {
-                await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [quickReply, senderId]);
+                await db.query(`INSERT INTO users (user_id, search_tweet_id) 
+                    VALUES (?, ?) 
+                    ON DUPLICATE KEY UPDATE search_tweet_id=?`,
+                [senderId, quickReply]);
 
                 await sendDM(senderId, {
                     text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! ex) 대전 은행동 성심당`,
@@ -95,7 +98,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     id: tweetId
                 });
                 await postT.post('statuses/update', {
-                    status: `@${data.user.screen_name} ${place_name}\n${road_address_name}\n#가볼가 에서 '${place_name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                    status: `@${data.user.screen_name} ${place_name}\n${road_address_name || address_name}\n#가볼가 에서 '${place_name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
                     in_reply_to_status_id: tweetId
                 }).catch(err => console.log(err));
                 
