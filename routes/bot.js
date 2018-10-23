@@ -54,7 +54,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query(`INSERT INTO users (user_id, search_tweet_id) 
                     VALUES (?, ?) 
                     ON DUPLICATE KEY UPDATE search_tweet_id=?`,
-                [senderId, quickReply]);
+                [senderId, quickReply, quickReply]);
 
                 await sendDM(senderId, {
                     text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! ex) 대전 은행동 성심당`,
@@ -215,7 +215,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
     // Follow
     if (req.body.follow_events) {
         await sendDM(req.body.follow_events[0].source.id, {
-            text: `반갑습니다, ${req.body.follow_events[0].source.name} 님! 팔로우 해주셔서 감사합니다.\n가볼까 싶은 장소가 적힌 트윗을 DM으로 공유해주세요! ${req.body.follow_events[0].source.name} 님의 지도에 기록해드릴게요.`
+            text: `반갑습니다, ${req.body.follow_events[0].source.name} 님! 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${req.body.follow_events[0].source.name} 님의 지도에 기록해드릴게요.`
         });
         
         return res.status(200).send();

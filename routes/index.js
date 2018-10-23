@@ -5,6 +5,8 @@ const oauth = require('oauth');
 const config = require('config');
 const hostname = config.get('domain');
 const twitConfig = config.get('twitter');
+const dmBotConfig = config.get('bot.dm');
+const dmT = new require('twit')(dmBotConfig);
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 
@@ -79,12 +81,42 @@ router.get('/callback', function(req, res, next) {
             if (err) {
                 return res.status(400).send(err);
             }
-            return db.query(`INSERT INTO users (user_id, screen_name, oauth_token, oauth_token_secret) 
-                VALUES (?, ?, ?, ?) 
-                ON DUPLICATE KEY UPDATE screen_name=?, oauth_token=?, oauth_token_secret=?`, 
-            [results.user_id, results.screen_name, oauth_token, oauth_token_secret, 
-                results.screen_name, oauth_token, oauth_token_secret]
-            ).then(() => {
+            return db.query('SELECT oauth_token FROM users WHERE user_id=?', [results.user_id]
+            ).then(([rows]) => {
+                if (!_.get(rows, '[0].oauth_token')) {
+                    dmT.post('direct_messages/events/new', {
+                        event: {
+                            type: 'message_create',
+                            message_create: {
+                                target: {
+                                    recipient_id: results.user_id
+                                },
+                                message_data: {
+                                    text: '가볼가에 가입해주셔서 감사합니다!\n가볼가 웹사이트에서 \'가볼가\'한 장소가 정리된 지도를 보실 수 있습니다.\n혹시, 가볼가 계정을 팔로우 하지 않으셨다면, 팔로우 하시면 더 편리하게 이용하실 수 있습니다!',
+                                    ctas: [
+                                        {
+                                            type: 'web_url',
+                                            label: `${results.screen_name} 님의 지도`,
+                                            url: 'https://gabolga.gamjaa.com/my/map'
+                                        },
+                                        {
+                                            type: 'web_url',
+                                            label: '팔로우 하기',
+                                            url: 'https://twitter.com/intent/follow?user_id=903176813517479936'
+                                        },
+                                    ],
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return db.query(`INSERT INTO users (user_id, screen_name, oauth_token, oauth_token_secret) 
+                    VALUES (?, ?, ?, ?) 
+                    ON DUPLICATE KEY UPDATE screen_name=?, oauth_token=?, oauth_token_secret=?`, 
+                [results.user_id, results.screen_name, oauth_token, oauth_token_secret, 
+                    results.screen_name, oauth_token, oauth_token_secret]);
+            }).then(() => {
                 req.session.isLogin = true;
                 req.session.user_id = results.user_id;
                 req.session.screen_name = results.screen_name;
