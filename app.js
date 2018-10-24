@@ -5,6 +5,7 @@ const session = require('express-session');
 const mysqlStore = require('express-mysql-session')(session);
 const logger = require('morgan');
 const config = require('config');
+const telegramSend = require('./routes/telegram');
 
 const indexRouter = require('./routes/index');
 const tweetRouter = require('./routes/tweet');
@@ -55,6 +56,7 @@ app.use(function(err, req, res, next) {
 
     if (err.name !== 'NotFoundError') {
         console.error(err);
+        telegramSend(`${req.method} ${req.originalUrl}`, req.body, err.stack)
     }
 
     // render the error page

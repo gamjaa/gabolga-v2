@@ -18,6 +18,7 @@
     "moment": "^2.22.2",
     "morgan": "~1.9.0",
     "mysql2": "^1.6.1",
+    "node-telegram-bot-api": "^0.30.0",
     "oauth": "^0.9.15",
     "pageres": "^4.5.1",
     "request": "^2.88.0",
