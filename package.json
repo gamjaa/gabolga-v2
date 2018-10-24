@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "NODE_ENV=production forever start ./bin/www"
+    "start": "NODE_ENV=production forever start forever.json"
   },
   "dependencies": {
     "config": "^2.0.1",
@@ -20,7 +20,6 @@
     "mysql2": "^1.6.1",
     "oauth": "^0.9.15",
     "pageres": "^4.5.1",
-    "phantom-pool": "^1.2.2",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "twit": "^2.2.11"

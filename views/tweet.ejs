@@ -47,8 +47,14 @@
       </div>
       <% } %>
   
-      <div id="data" style="width:100%;">
+      <div id="data">
         <% if (isRegistered) { %>
+          <% if (name) { %>
+            <div id="route_link">
+              <a href="http://map.daum.net/link/to/<%= name %>,<%= lat %>,<%= lng %>" target="_blank" title="카카오맵(다음 지도) 길찾기"><img src="/img/kakaomap_icon.png"></a>
+              <a href="https://map.naver.com/?menu=route&etext=<%= name %>&elat=<%= lat %>&elng=<%= lng %>" target="_blank" title="네이버 지도 길찾기"><img src="/img/navermap_icon.png"></a>
+            </div>
+          <% } %>
         <div id="gabolga">
           <h3><%= name %></h3>
           <% if (roadAddress) { %>
