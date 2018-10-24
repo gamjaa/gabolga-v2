@@ -23,9 +23,9 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
     
     const id = idRegex.exec(req.params.id)[1];
     const query = !req.session.isLogin 
-        ? `SELECT name, address, road_address, phone, lat, lng, image_url 
+        ? `SELECT name, address, road_address, phone, lat, lng 
         FROM tweet WHERE tweet.tweet_id=?`
-        : `SELECT name, address, road_address, phone, lat, lng, image_url, user_id 
+        : `SELECT name, address, road_address, phone, lat, lng, user_id 
         FROM tweet 
         LEFT JOIN my_map ON (tweet.tweet_id=my_map.tweet_id AND my_map.user_id='${req.session.user_id}')
         WHERE tweet.tweet_id=?`;
@@ -50,7 +50,6 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         phone: _.get(rows, '[0].phone'),
         lat: _.get(rows, '[0].lat'),
         lng: _.get(rows, '[0].lng'),
-        imageUrl: _.get(rows, '[0].image_url'),
 
         isGabolga: _.get(rows, '[0].user_id'),
     });
