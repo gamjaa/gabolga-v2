@@ -18,10 +18,10 @@
   <meta name="twitter:site" content="@GABOLGA_bot">
   <meta name="twitter:title" content="가볼가 :: <%= title || '미등록된 장소' %>">
   <meta name="twitter:description" content="<%= desc %>">
-  <meta name="twitter:image" content="https://gabolga.gamjaa.com/img/gabolga_w.png">
+  <meta name="twitter:image" content="<%- (req.baseUrl === '/tweet' && lat) ? `https://gabolga.gamjaa.com/api/thumb?lat=${lat}&lng=${lng}` : 'https://gabolga.gamjaa.com/img/gabolga_w.png' %>">
   <meta name="og:title" content="가볼가 :: <%= title || '미등록된 장소' %>">
   <meta name="og:description" content="<%= desc %>">
-  <meta name="og:image" content="https://gabolga.gamjaa.com/img/gabolga_w.png">
+  <meta name="og:image" content="<%- (req.baseUrl === '/tweet' && lat) ? `https://gabolga.gamjaa.com/api/thumb?lat=${lat}&lng=${lng}` : 'https://gabolga.gamjaa.com/img/gabolga_w.png' %>">
 </head>
 <body <%- (req.path === '/map' || req.baseUrl === '/tweet') ? 'class="include_map"' : '' %>>
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>

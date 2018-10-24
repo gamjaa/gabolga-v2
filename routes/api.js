@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const Pageres = require('pageres');
+const hostname = require('config').get('domain');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 
@@ -58,6 +60,22 @@ router.get('/gabolga/:id', function(req, res, next) {
         });
     
     return res.status(200).send('success');
+});
+
+// GET /api/thumb
+router.get('/thumb', function(req, res, next) {
+    return new Pageres()
+        .src(`${hostname}/api/staticMap?lat=${req.query.lat}&lng=${req.query.lng}`, ['600x335', '600x335'])
+        .run()
+        .then(([stream]) => stream.pipe(res));
+});
+
+// GET /api/staticMap
+router.get('/staticMap', function(req, res, next) {
+    return res.render('thumb', { 
+        lat: req.query.lat,
+        lng: req.query.lng
+    });
 });
 
 module.exports = router;
