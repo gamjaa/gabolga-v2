@@ -88,7 +88,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         id
     });
     const nowDate = moment();
-    const tweetDate = moment(data.created_at);
+    const tweetDate = moment(data.created_at, 'ddd MMM DD HH:mm:ss ZZ YYYY');  // Fri Jun 22 04:51:49 +0000 2018
     if (data.retweet_count >= 100 
         || (moment.duration(nowDate.diff(tweetDate)).asDays() <= 7 && data.retweet_count >= 20)) {
         await postT.post('statuses/update', {
@@ -97,9 +97,9 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         }).catch(err => console.error(err));
     }
 
-    const [users] = await db.query('SELECT is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);
+    const [users] = await db.query('SELECT oauth_token, oauth_token_secret, is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);
     if (users[0].is_auto_tweet) {
-        const T = twit(req.session.oauth_token, req.session.oauth_token_secret);
+        const T = twit(users[0].oauth_token, users[0].oauth_token_secret);
         await T.post('statuses/update', {
             status: `#가볼가 에 '${req.body.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
         });
