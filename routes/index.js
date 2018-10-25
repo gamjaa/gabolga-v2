@@ -14,7 +14,7 @@ const wrapAsync = require('./common/wrapAsync');
 router.get('/', function(req, res, next) {
     return res.render('index', { 
         req,
-        title: '트위터 맛집, 대신 정리해드립니다!'
+        title: '트위터 맛집, 지도로 정리해드립니다!'
     });
 });
 
@@ -120,8 +120,6 @@ router.get('/callback', function(req, res, next) {
                 req.session.isLogin = true;
                 req.session.user_id = results.user_id;
                 req.session.screen_name = results.screen_name;
-                req.session.oauth_token = oauth_token;
-                req.session.oauth_token_secret = oauth_token_secret;
 
                 return db.query('SELECT has_setting FROM users WHERE user_id=?', [results.user_id]);
             }).then(([rows]) => {

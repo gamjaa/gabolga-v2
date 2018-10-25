@@ -99,7 +99,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     id: tweetId
                 });
                 const nowDate = moment();
-                const tweetDate = moment(data.created_at);
+                const tweetDate = moment(data.created_at, 'ddd MMM DD HH:mm:ss ZZ YYYY');  // Fri Jun 22 04:51:49 +0000 2018
                 if (data.retweet_count >= 100 
                     || (moment.duration(nowDate.diff(tweetDate)).asDays() <= 7 && data.retweet_count >= 20)) {
                     await postT.post('statuses/update', {
@@ -213,7 +213,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
     }
 
     // Follow
-    if (req.body.follow_events) {
+    if (req.body.follow_events &&
+        req.body.follow_events[0].source.id !== '903176813517479936') {
         await sendDM(req.body.follow_events[0].source.id, {
             text: `반갑습니다, ${req.body.follow_events[0].source.name} 님! 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${req.body.follow_events[0].source.name} 님의 지도에 기록해드릴게요.`
         });
