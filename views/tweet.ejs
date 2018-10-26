@@ -43,7 +43,7 @@
   
       <% if (!req.session.isLogin && !isRegistered) { %>
       <div class="alert alert-primary center" role="alert">
-        <a href="/login?refer=<%= req.originalUrl %>">로그인해서 장소를 등록해주세요!</a>
+        <a href="/login?refer=<%= req.originalUrl %>" onclick="gtag('event', '로그인')">로그인해서 장소를 등록해주세요!</a>
       </div>
       <% } %>
   
@@ -51,8 +51,8 @@
         <% if (isRegistered) { %>
           <% if (name) { %>
             <div id="route_link">
-              <a href="http://map.daum.net/link/to/<%= name %>,<%= lat %>,<%= lng %>" target="_blank" title="카카오맵(다음 지도) 길찾기"><img src="/img/kakaomap_icon.png"></a>
-              <a href="https://map.naver.com/?menu=route&etext=<%= name %>&elat=<%= lat %>&elng=<%= lng %>" target="_blank" title="네이버 지도 길찾기"><img src="/img/navermap_icon.png"></a>
+              <a href="http://map.daum.net/link/to/<%= name %>,<%= lat %>,<%= lng %>" target="_blank" title="카카오맵(다음 지도) 길찾기" onclick="gtag('event', '다음길찾기')"><img src="/img/kakaomap_icon.png"></a>
+              <a href="https://map.naver.com/?menu=route&etext=<%= name %>&elat=<%= lat %>&elng=<%= lng %>" target="_blank" title="네이버 지도 길찾기" onclick="gtag('event', '네이버길찾기')"><img src="/img/navermap_icon.png"></a>
             </div>
           <% } %>
         <div id="gabolga">
@@ -76,7 +76,7 @@
             <button id="btn_gabolga" class="btn btn-primary" onclick="gabolga()">가볼가 하기</button>
           <% } else { %>
             <div class="alert alert-primary center" role="alert" >
-              <a href="/login?refer=<%= req.originalUrl %>">로그인해서 내 지도에 등록해보세요!</a>
+              <a href="/login?refer=<%= req.originalUrl %>" onclick="gtag('event', '로그인')">로그인해서 내 지도에 등록해보세요!</a>
             </div>
           <% } %>
         </div>
@@ -130,11 +130,13 @@
               // 마커에 click 이벤트를 등록합니다
               daum.maps.event.addListener(marker, 'click', function() {
                 if(confirm(title + "(으)로 등록하시겠습니까?")) {
+                  gtag('event', '장소등록');
                   $.ajax('/tweet/<%= id %>', { method: 'PUT', data: {name: title, address: addr, road_address: road_addr, phone: tel, lat: y, lng: x}}).done(() => location.reload(true));
                 }
               });
               itemEl.onclick = function () {
                 if(confirm(title + "(으)로 등록하시겠습니까?")) {
+                  gtag('event', '장소등록');
                   $.ajax("/tweet/<%= id %>", { method: 'PUT', data: {name: title, address: addr, road_address: road_addr, phone: tel, lat: y, lng: x}}).done(() => location.reload(true));
                 }
               };
@@ -180,10 +182,12 @@
   function gabolga() {
     $.get("/api/gabolga/<%= id %>", function(data) {
       if($("#btn_gabolga").text() == "가볼가 하기") {
+        gtag('event', '가볼가하기');
         $("#btn_gabolga").text("가볼가 취소");
         $("#btn_gabolga").addClass("btn-danger");
         $("#btn_gabolga").removeClass("btn-primary");
       } else {
+        gtag('event', '가볼가취소');
         $("#btn_gabolga").text("가볼가 하기");
         $("#btn_gabolga").addClass("btn-primary");
         $("#btn_gabolga").removeClass("btn-danger");
