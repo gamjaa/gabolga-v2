@@ -42,7 +42,7 @@ router.get('/tweet', function(req, res, next) {
 });
 
 // GET /api/gabolga/:id
-router.get('/gabolga/:id', function(req, res, next) {
+router.get('/gabolga/:id', wrapAsync(async (req, res, next) => {
     if (!req.session.isLogin || !req.params.id) {
         return res.status(400).send();
     }
@@ -51,18 +51,16 @@ router.get('/gabolga/:id', function(req, res, next) {
         return res.status(400).send();
     }
 
-    db.query(`SELECT * FROM my_map WHERE user_id=${req.session.user_id} AND tweet_id=${req.params.id}`,
-        (err, rows) => {
-            if (rows.length) {
-                return db.query(`DELETE FROM my_map WHERE user_id=${req.session.user_id} AND tweet_id=${req.params.id}`);
-            }
-            
-            return db.query('INSERT INTO my_map (user_id, tweet_id) VALUES (?, ?)',
-                [req.session.user_id, req.params.id]);
-        });
+    const [rows] = await db.query(`SELECT * FROM my_map WHERE user_id=${req.session.user_id} AND tweet_id=${req.params.id}`);
+    if (rows.length) {
+        await db.query(`DELETE FROM my_map WHERE user_id=${req.session.user_id} AND tweet_id=${req.params.id}`);
+    } else {
+        await db.query('INSERT INTO my_map (user_id, tweet_id) VALUES (?, ?)',
+            [req.session.user_id, req.params.id]);
+    }
     
-    return res.status(200).send('success');
-});
+    return res.json({ isGabolga: !rows.length });
+}));
 
 // GET /api/thumb
 router.get('/thumb', wrapAsync(async (req, res, next) => {
