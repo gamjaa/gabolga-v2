@@ -139,9 +139,9 @@
   });
   
   const btn = document.getElementById('btn_gabolga');
-  const gabolga = () => {
+  const gabolga = ({isGabolga}) => {
     httpGet('/api/gabolga/<%= id %>', () => {
-      if(btn.innerText == '가볼가 하기') {
+      if(!isGabolga) {
         gtag('event', '가볼가하기');
         btn.innerText = '가볼가 취소';
         btn.classList.add('btn-danger');

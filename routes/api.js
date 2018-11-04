@@ -51,8 +51,12 @@ router.get('/gabolga/:id', function(req, res, next) {
         return res.status(400).send();
     }
 
+    let isGabolga;
+
     db.query(`SELECT * FROM my_map WHERE user_id=${req.session.user_id} AND tweet_id=${req.params.id}`,
         (err, rows) => {
+            isGabolga = rows.length ? false : true;
+
             if (rows.length) {
                 return db.query(`DELETE FROM my_map WHERE user_id=${req.session.user_id} AND tweet_id=${req.params.id}`);
             }
@@ -61,7 +65,7 @@ router.get('/gabolga/:id', function(req, res, next) {
                 [req.session.user_id, req.params.id]);
         });
     
-    return res.status(200).send('success');
+    return res.json({ isGabolga });
 });
 
 // GET /api/thumb
