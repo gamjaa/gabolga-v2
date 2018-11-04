@@ -55,8 +55,10 @@ app.use(function(err, req, res, next) {
     res.locals.error = req.app.get('env') === 'development' ? err : {};
 
     if (err.name !== 'NotFoundError') {
-        console.error(err);
-        telegramSend(`${req.method} ${req.originalUrl}`, req.body, err.stack)
+        console.error(err.stack);
+        if (process.env.NODE_ENV === 'production') {
+            telegramSend(`${req.method} ${req.originalUrl}`, req.body, err.stack)
+        }
     }
 
     // render the error page

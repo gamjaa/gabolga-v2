@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Pageres = require('pageres');
-const hostname = require('config').get('domain');
+const config = require('config');
+const naver = config.get('naver');
+const request = require('request-promise-native');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
+const localSearch = require('./common/localSearch');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -14,15 +16,15 @@ router.get('/map', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    if (!(req.query.swLat && req.query.swLng && req.query.neLat && req.query.neLng)) {
+    if (!(req.query.minX && req.query.maxX && req.query.minY && req.query.maxY)) {
         return res.status(400).send();
     }
 
-    const [rows] = await db.query(`SELECT tweet.tweet_id, name, lat, lng 
+    const [rows] = await db.query(`SELECT tweet.tweet_id, name, mapx, mapy 
         FROM my_map
         JOIN tweet ON my_map.tweet_id=tweet.tweet_id
-        WHERE user_id=? AND lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?`,
-    [req.session.user_id, req.query.swLat, req.query.neLat, req.query.swLng, req.query.neLng]);
+        WHERE user_id=? AND mapx BETWEEN ? AND ? AND mapy BETWEEN ? AND ?`,
+    [req.session.user_id, req.query.minX, req.query.maxX, req.query.minY, req.query.maxY]);
     return res.json(rows);
 }));
 
@@ -63,19 +65,27 @@ router.get('/gabolga/:id', function(req, res, next) {
 });
 
 // GET /api/thumb
-router.get('/thumb', function(req, res, next) {
-    return new Pageres()
-        .src(`${hostname}/api/staticMap?lat=${req.query.lat}&lng=${req.query.lng}`, ['600x335', '600x335'])
-        .run()
-        .then(([stream]) => stream.pipe(res));
-});
+router.get('/thumb', wrapAsync(async (req, res, next) => {
+    return request.get('https://openapi.naver.com/v1/map/staticmap.bin', {
+        qs: {
+            clientId: naver.id,
+            url: 'https://gabolga.gamjaa.com',
+            scale: 1,
+            crs: 'NHN:128',
+            exception: 'json',
+            center: `${req.query.mapx},${req.query.mapy}`,
+            level: 12,
+            w: 505,
+            h: 253,
+            baselayer: 'default',
+            markers: `${req.query.mapx},${req.query.mapy}`
+        }
+    }).pipe(res);
+}));
 
-// GET /api/staticMap
-router.get('/staticMap', function(req, res, next) {
-    return res.render('thumb', { 
-        lat: req.query.lat,
-        lng: req.query.lng
-    });
-});
+// GET /api/searchLocal
+router.get('/searchLocal', wrapAsync(async (req, res, next) => {
+    return res.json(await localSearch(req.query.query, req.query.start));
+}));
 
 module.exports = router;

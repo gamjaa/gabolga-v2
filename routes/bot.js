@@ -73,7 +73,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 return res.status(200).send();
             }
 
-            const {place_name, address_name, road_address_name, phone, x, y, isClose} = JSON.parse(quickReply);
+            const {name, address, road_address, phone, mapx, mapy, isClose} = JSON.parse(quickReply);
             if (isClose) {
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
 
@@ -87,12 +87,12 @@ router.post('/', wrapAsync(async (req, res, next) => {
             const [users] = await db.query('SELECT oauth_token, oauth_token_secret, search_tweet_id, is_auto_tweet FROM users WHERE user_id=?', [senderId]);
             const tweetId = _.get(users, '[0].search_tweet_id');
             if (tweetId) {
-                await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
+                await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, mapy, mapx, writer) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-                [tweetId, place_name, address_name, road_address_name, phone, y, x, senderId]);
+                [tweetId, name, address, road_address, phone, mapy, mapx, senderId]);
                 
                 await sendDM(senderId, {
-                    text: `${req.body.users[senderId].name} 님의 지도에 '${place_name}'이(가) 등록되었습니다! 감사합니다.\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                    text: `${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 등록되었습니다! 감사합니다.\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
                 });
                 
                 const {data} = await postT.get('statuses/show', {
@@ -103,7 +103,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 if (data.retweet_count >= 100 
                     || (moment.duration(nowDate.diff(tweetDate)).asDays() <= 7 && data.retweet_count >= 20)) {
                     await postT.post('statuses/update', {
-                        status: `@${data.user.screen_name} ${place_name}\n${road_address_name || address_name}\n#가볼가 에서 '${place_name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                        status: `@${data.user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 '${name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
                         in_reply_to_status_id: tweetId
                     }).catch(err => console.log(err));
                 }
@@ -111,7 +111,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 if (users[0].is_auto_tweet) {
                     const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
                     await T.post('statuses/update', {
-                        status: `#가볼가 에 '${place_name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                        status: `#가볼가 에 '${name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
                     });
                 }
                 
@@ -146,13 +146,13 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 return res.status(200).send();
             }
 
-            const {documents} = await localSearch(text);
-            const places = documents.map(document => {
-                const {place_name, address_name, road_address_name, phone, x, y} = document;
+            const {items} = await localSearch(text);
+            const places = items.map(item => {
+                const {name, address, road_address, phone, mapx, mapy} = item;
                 return {
-                    label: place_name,
-                    description: `${address_name} / ${phone}`,
-                    metadata: JSON.stringify({place_name, address_name, road_address_name, phone, x, y})
+                    label: name,
+                    description: `${address || road_address} / ${phone}`,
+                    metadata: JSON.stringify({name, address, road_address, phone, mapx, mapy})
                 };
             });
             await sendDM(senderId, {

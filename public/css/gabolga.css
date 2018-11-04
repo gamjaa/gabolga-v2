@@ -8,9 +8,10 @@ button {cursor: pointer;}
 #gabolga {float: left; width: 100%; padding: 10px; }
 #gabolga h3 {width: calc(100% - 130px);}
 #route_link {position: absolute; right: 0; width: 130px; margin: 0; padding: 0;}
-#route_link a {padding-left: 10px;}
+#route_link a {padding-left: 10px; cursor: pointer;}
 #route_link img {width: 50px; height: 50px;}
 .include_map {width: 100%; height: calc(100vh - 56px); position: fixed; overflow-y: hidden;}
+#map {width: 100%; height: 100%}
 #list tr {cursor: pointer;}
 .card img {min-width: 270px; width: 100%; height: auto;}
 @media screen and (max-width: 800px) {
@@ -33,19 +34,14 @@ button {cursor: pointer;}
 #pagination a {display:inline-block;margin-right:10px;}
 #pagination .on {font-weight: bold; cursor: default;color:#777;}*/
 
-#placesList .item .markerbg {float:left;position:absolute;width:36px; height:37px;margin:10px 0 0 10px;background:url(//t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png) no-repeat;}
-#placesList .item .marker_1 {background-position: 0 -10px;}
-#placesList .item .marker_2 {background-position: 0 -56px;}
-#placesList .item .marker_3 {background-position: 0 -102px}
-#placesList .item .marker_4 {background-position: 0 -148px;}
-#placesList .item .marker_5 {background-position: 0 -194px;}
-#placesList .item .marker_6 {background-position: 0 -240px;}
-#placesList .item .marker_7 {background-position: 0 -286px;}
-#placesList .item .marker_8 {background-position: 0 -332px;}
-#placesList .item .marker_9 {background-position: 0 -378px;}
-#placesList .item .marker_10 {background-position: 0 -423px;}
-#placesList .item .marker_11 {background-position: 0 -470px;}
-#placesList .item .marker_12 {background-position: 0 -516px;}
-#placesList .item .marker_13 {background-position: 0 -562px;}
-#placesList .item .marker_14 {background-position: 0 -608px;}
-#placesList .item .marker_15 {background-position: 0 -654px;}
+#placesList .item .markerbg {float:left;position:absolute;width:24px; height:37px;margin:10px 0 0 10px;background:url(/img/sp_pins_spot_v3.png) no-repeat;}
+#placesList .item .marker_1 {background-position: 0px 0px;}
+#placesList .item .marker_2 {background-position: -29px 0px;}
+#placesList .item .marker_3 {background-position: -58px 0px}
+#placesList .item .marker_4 {background-position: -87px 0px;}
+#placesList .item .marker_5 {background-position: -116px 0px;}
+#placesList .item .marker_6 {background-position: -145px 0px;}
+#placesList .item .marker_7 {background-position: -174px 0px;}
+#placesList .item .marker_8 {background-position: -203px 0px;}
+#placesList .item .marker_9 {background-position: -232px 0px;}
+#placesList .item .marker_10 {background-position: -261px 0px;}

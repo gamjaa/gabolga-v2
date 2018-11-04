@@ -1,9 +1,10 @@
 <%- include('header'); -%>
-<div id="map" style="width:100%; height:calc(100vh - 56px);">
+<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=OkoqrDNq7sZ8zfy4x5To&submodules=geocoder"></script>
+<div id="map">
     <div id="map_pop">
       <script>var tweet = false;</script>
   
-      <button id="tweet_switch" onclick="tweet_switch(tweet);" class="btn btn-sm btn-primary" style="position: absolute; z-index: 3;">ㅡ</button>
+      <button id="tweet_switch" onclick="tweetSwitch(tweet)" class="btn btn-sm btn-primary" style="position: absolute; z-index: 3;">ㅡ</button>
   
       <div id="tweet">
         <%- tweetHtml %>
@@ -14,28 +15,28 @@
       document.body.scrollTop = 0;
       if(window.innerHeight < 600) {
         tweet = false;
-        tweet_switch(tweet);
+        tweetSwitch(tweet);
       }
-      $(window).resize(function() {
+      window.onresize = function() {
         document.body.scrollTop = 0;
         if(window.innerHeight < 600) {
           tweet = false;
-          tweet_switch(tweet);
+          tweetSwitch(tweet);
         } else {
           tweet = true;
-          tweet_switch(tweet);
+          tweetSwitch(tweet);
         }
-      });
-      function tweet_switch(i) {
+      };
+      function tweetSwitch(i) {
         if(i) {
-          $("#tweet").css("display", "block");
-          $("#tweet_switch").text("ㅡ");
-          $("#padding").css("padding-bottom", "0");
+          document.getElementById('tweet').style.display = 'block';
+          document.getElementById('tweet_switch').innerText = 'ㅡ';
+          document.getElementById('padding').style.paddingBottom = '0';
           tweet = false;
         } else {
-          $("#tweet").css("display", "none");
-          $("#tweet_switch").text("ㅁ");
-          $("#padding").css("padding-bottom", "30px");
+          document.getElementById('tweet').style.display = 'none';
+          document.getElementById('tweet_switch').innerText = 'ㅁ';
+          document.getElementById('padding').style.paddingBottom = '30px';
           tweet = true;
         }
       }
@@ -51,8 +52,18 @@
         <% if (isRegistered) { %>
           <% if (name) { %>
             <div id="route_link">
-              <a href="http://map.daum.net/link/to/<%= name %>,<%= lat %>,<%= lng %>" target="_blank" title="카카오맵(다음 지도) 길찾기" onclick="gtag('event', '다음길찾기')"><img src="/img/kakaomap_icon.png"></a>
-              <a href="https://map.naver.com/?menu=route&etext=<%= name %>&elat=<%= lat %>&elng=<%= lng %>" target="_blank" title="네이버 지도 길찾기" onclick="gtag('event', '네이버길찾기')"><img src="/img/navermap_icon.png"></a>
+              <script>
+                const point = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= mapx %>, <%= mapy %>));
+                const openRoute = (app) => {
+                  if (app === 'kakao') {
+                    return window.open(`http://map.daum.net/link/to/<%= name %>,${point.lat()},${point.lng()}`, '_blank');
+                  }
+
+                  return window.open(`https://map.naver.com/?menu=route&etext=<%= name %>&elat=${point.lat()}&elng=${point.lng()}`, '_blank');
+                }
+              </script>
+              <a herf="#" title="카카오맵(다음 지도) 길찾기" onclick="gtag('event', '다음길찾기'); openRoute('kakao')"><img src="/img/kakaomap_icon.png"></a>
+              <a herf="#" title="네이버 지도 길찾기" onclick="gtag('event', '네이버길찾기'); openRoute('naver')"><img src="/img/navermap_icon.png"></a>
             </div>
           <% } %>
         <div id="gabolga">
@@ -102,99 +113,226 @@
         <% } %>
       </div>
     </div>
-  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ccdf52614c4fdbc279d9aa623ba3dc65&libraries=services"></script>
-  
-  <% if (!isRegistered) { %>
-  <script type="text/javascript" src="/js/tweet_no_data.js"></script>
-  <script>
-  // 검색 결과 목록과 마커를 표출하는 함수입니다
-  function displayPlaces(places) {
-      var listEl = document.getElementById('placesList'),
-      menuEl = document.getElementById('menu_wrap'),
-      fragment = document.createDocumentFragment(),
-      bounds = new daum.maps.LatLngBounds(),
-      listStr = '';
-      // 검색 결과 목록에 추가된 항목들을 제거합니다
-      removeAllChildNods(listEl);
-      // 지도에 표시되고 있는 마커를 제거합니다
-      removeMarker();
-      for ( var i=0; i<places.length; i++ ) {
-          // 마커를 생성하고 지도에 표시합니다
-          var placePosition = new daum.maps.LatLng(places[i].y, places[i].x),
-              marker = addMarker(placePosition, i),
-              itemEl = getListItem(i, places[i]); // 검색 결과 항목 Element를 생성합니다
-          // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해 LatLngBounds 객체에 좌표를 추가합니다
-          bounds.extend(placePosition);
-          // 마커와 검색결과 항목에 mouseover 했을때 해당 장소에 인포윈도우에 장소명을 표시합니다 mouseout 했을 때는 인포윈도우를 닫습니다
-          (function(marker, position, title, addr, road_addr, tel, x, y) {
-              // 마커에 click 이벤트를 등록합니다
-              daum.maps.event.addListener(marker, 'click', function() {
-                if(confirm(title + "(으)로 등록하시겠습니까?")) {
-                  gtag('event', '장소등록');
-                  $.ajax('/tweet/<%= id %>', { method: 'PUT', data: {name: title, address: addr, road_address: road_addr, phone: tel, lat: y, lng: x}}).done(() => location.reload(true));
-                }
-              });
-              itemEl.onclick = function () {
-                if(confirm(title + "(으)로 등록하시겠습니까?")) {
-                  gtag('event', '장소등록');
-                  $.ajax("/tweet/<%= id %>", { method: 'PUT', data: {name: title, address: addr, road_address: road_addr, phone: tel, lat: y, lng: x}}).done(() => location.reload(true));
-                }
-              };
-  
-              daum.maps.event.addListener(marker, 'mouseover', function() {
-                  displayInfowindow(marker, null, title);
-              });
-              daum.maps.event.addListener(marker, 'mouseout', function() {
-                  infowindow.close();
-              });
-              itemEl.onmouseover =  function () {
-                  displayInfowindow(marker, position, title);
-              };
-              itemEl.onmouseout =  function () {
-                  infowindow.close();
-              };
-          })(marker, placePosition, places[i].place_name, places[i].address_name, places[i].road_address_name, places[i].phone, places[i].x, places[i].y);
-  
-          fragment.appendChild(itemEl);
+</div>
+<script>
+  function httpGet(url, callback) {
+    const http = new XMLHttpRequest();
+    http.open('GET', url, true);
+    http.onreadystatechange = function () {
+      if (http.readyState === 4 && typeof callback === 'function') {
+        callback(JSON.parse(http.responseText));
       }
-      // 검색결과 항목들을 검색결과 목록 Elemnet에 추가합니다
-      listEl.appendChild(fragment);
-      menuEl.scrollTop = 0;
-      // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
-      map.setBounds(bounds);
+    };
+    http.send();
   }
-  </script>
-  <% } %>
-  
-  <% if (isRegistered) { %>
-  <script>
+
+  const mapDiv = document.getElementById('map');
+
+<% if (isRegistered) { %>
   new Clipboard('.copy');
-  var container = document.getElementById('map');
-  var options = {
-    center: new daum.maps.LatLng(<%= lat %>, <%= lng %>),
+  const map = new naver.maps.Map(mapDiv, {
+    center: new naver.maps.LatLng(point.lat(), point.lng()),
     level: 3
-  };
-  var map = new daum.maps.Map(container, options);
-  var marker = new daum.maps.Marker({
-      map: map, position: new daum.maps.LatLng(<%= lat %>, <%= lng %>)
+  });
+  const marker = new naver.maps.Marker({
+    map, position: new naver.maps.LatLng(point.lat(), point.lng())
   });
   
-  function gabolga() {
-    $.get("/api/gabolga/<%= id %>", function(data) {
-      if($("#btn_gabolga").text() == "가볼가 하기") {
+  const btn = document.getElementById('btn_gabolga');
+  const gabolga = () => {
+    httpGet('/api/gabolga/<%= id %>', () => {
+      if(btn.innerText == '가볼가 하기') {
         gtag('event', '가볼가하기');
-        $("#btn_gabolga").text("가볼가 취소");
-        $("#btn_gabolga").addClass("btn-danger");
-        $("#btn_gabolga").removeClass("btn-primary");
+        btn.innerText = '가볼가 취소';
+        btn.classList.add('btn-danger');
+        btn.classList.remove('btn-primary');
       } else {
         gtag('event', '가볼가취소');
-        $("#btn_gabolga").text("가볼가 하기");
-        $("#btn_gabolga").addClass("btn-primary");
-        $("#btn_gabolga").removeClass("btn-danger");
+        btn.innerText = '가볼가 하기';
+        btn.classList.add('btn-primary');
+        btn.classList.remove('btn-danger');
       }
     });
   }
-  </script>
-  <% } %>
-</div>
+  <% } else { %>
+  const map = new naver.maps.Map(mapDiv);
+  const markers = [];
+  const infowindows = [];
+  const searchedItems = [];
+
+  const putData = (i) => {
+    if(confirm(`'${searchedItems[i].name}'(으)로 등록하시겠습니까?`)) {
+      gtag('event', '장소등록');
+      
+      const http = new XMLHttpRequest();
+      http.open('PUT', '/tweet/<%= id %>', true);
+      http.setRequestHeader('Content-type','application/json; charset=utf-8');
+      http.onreadystatechange = function () {
+        if (http.readyState === 4 && http.status === 200) {
+          location.replace('/tweet/<%= id %>');
+        }
+      };
+      http.send(JSON.stringify({
+        name: searchedItems[i].name,
+        phone: searchedItems[i].phone,
+        address: searchedItems[i].address,
+        road_address: searchedItems[i].road_address,
+        mapx: searchedItems[i].mapx,
+        mapy: searchedItems[i].mapy,
+      }));
+    }
+  };
+
+  const placesListUl = document.getElementById('placesList');
+
+  const onMouseOver = (index) => {
+    markers[index].setIcon({
+      url: '/img/sp_pins_spot_v3_over.png',
+      size: new naver.maps.Size(24, 37),
+      anchor: new naver.maps.Point(12, 37),
+      origin: new naver.maps.Point(index * 29, 0)
+    });
+    infowindows[index].open(map, markers[index]);
+  };
+
+  const onMouseOut = (index) => {
+    markers[index].setIcon({
+      url: '/img/sp_pins_spot_v3.png',
+      size: new naver.maps.Size(24, 37),
+      anchor: new naver.maps.Point(12, 37),
+      origin: new naver.maps.Point(index * 29, 0)
+    });
+    infowindows[index].close();
+  };
+
+  const getSearchData = (keyword, start) => {
+    httpGet(`/api/searchLocal?query=${encodeURI(keyword)}&start=${start}`, ({total, start, display, items}) => {
+      markers.forEach(marker => marker.setMap(null));
+      markers.length = 0;
+      infowindows.length = 0;
+      searchedItems.length = 0;
+
+      removeAllChildNods(placesListUl);
+
+      if (total === 0) {
+        const itemLi = document.createElement('li');
+        itemLi.innerHTML = '검색 결과가 없습니다.';
+        placesListUl.appendChild(itemLi);
+        return;
+      }
+
+      const bounds = [];
+      
+      items.forEach((item, index) => {
+        searchedItems.push(item);
+        
+        // 마커 표시
+        const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(item.mapx, item.mapy));
+        bounds.push(position);
+        const marker = new naver.maps.Marker({
+          position,
+          map,
+          icon: {
+            url: '/img/sp_pins_spot_v3.png',
+            size: new naver.maps.Size(24, 37),
+            anchor: new naver.maps.Point(12, 37),
+            origin: new naver.maps.Point(index * 29, 0)
+          }
+        });
+
+        const infowindow = new naver.maps.InfoWindow({
+          content: `${item.name} (${item.phone})`
+        });
+
+        naver.maps.Event.addListener(marker, "mouseover", () => onMouseOver(index));
+
+        naver.maps.Event.addListener(marker, "mouseout", () => onMouseOut(index));
+
+        naver.maps.Event.addListener(marker, "click", function(e) {
+          putData(index);
+        });
+
+        markers.push(marker);
+        infowindows.push(infowindow);
+
+        // 검색 데이터 표시
+        const itemLi = getListItem(index, item);
+        itemLi.onclick = (e) => putData(index);
+        itemLi.onmouseover = (e) => {
+          map.panTo(position);
+          onMouseOver(index);
+        };
+        itemLi.onmouseout = () => onMouseOut(index);
+
+        placesListUl.appendChild(itemLi);
+      });
+      
+      // 페이지 번호 표시
+
+      map.fitBounds(bounds);
+    });
+  };
+
+  const searchPlaces = () => {
+    const keyword = document.getElementById('keyword').value.replace(/^\s+|\s+$/g, '');
+    if (!keyword) {
+      alert('키워드를 입력해주세요!');
+      return false;
+    }
+    
+    placesListUl.scrollTop = 0;
+    getSearchData(keyword, 1);
+  };
+
+  // 검색결과 항목을 Element로 반환하는 함수입니다
+  function getListItem(index, item) {
+      const el = document.createElement('li');
+      let itemStr = `<span class="markerbg marker_${index + 1}"></span>
+      <div class="info">
+        <h5>${item.name}</h5>`;
+      if (item.road_address) {
+          itemStr += `<span>${item.road_address}</span><span class="jibun gray">${item.address}</span>`;
+      } else {
+          itemStr += `<span>${item.address}</span>`;
+      }
+      itemStr += `<span class="tel">${item.phone}</span></div>`;
+      el.innerHTML = itemStr;
+      el.className = 'item';
+      return el;
+  }
+
+  // 검색결과 목록 하단에 페이지번호를 표시는 함수입니다
+  function displayPagination(pagination) {
+      var paginationEl = document.getElementById('pagination'),
+          fragment = document.createDocumentFragment(),
+          i;
+      // 기존에 추가된 페이지번호를 삭제합니다
+      while (paginationEl.hasChildNodes()) {
+          paginationEl.removeChild (paginationEl.lastChild);
+      }
+      for (i=1; i<=pagination.last; i++) {
+          var el = document.createElement('a');
+          el.href = "#";
+          el.innerHTML = i;
+          if (i===pagination.current) {
+              el.className = 'on';
+          } else {
+              el.onclick = (function(i) {
+                  return function() {
+                      pagination.gotoPage(i);
+                  }
+              })(i);
+          }
+          fragment.appendChild(el);
+      }
+      paginationEl.appendChild(fragment);
+  }
+  // 검색결과 목록의 자식 Element를 제거하는 함수입니다
+  function removeAllChildNods(el) {
+    while (el.hasChildNodes()) {
+      el.removeChild (el.lastChild);
+    }
+  }
+<% } %>
+</script>
 <%- include('footer'); -%>

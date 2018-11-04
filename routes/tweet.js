@@ -23,9 +23,9 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
     
     const id = idRegex.exec(req.params.id)[1];
     const query = !req.session.isLogin 
-        ? `SELECT name, address, road_address, phone, lat, lng 
+        ? `SELECT name, address, road_address, phone, mapx, mapy 
         FROM tweet WHERE tweet.tweet_id=?`
-        : `SELECT name, address, road_address, phone, lat, lng, user_id 
+        : `SELECT name, address, road_address, phone, mapx, mapy, user_id 
         FROM tweet 
         LEFT JOIN my_map ON (tweet.tweet_id=my_map.tweet_id AND my_map.user_id='${req.session.user_id}')
         WHERE tweet.tweet_id=?`;
@@ -48,8 +48,8 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         address: _.get(rows, '[0].address'),
         roadAddress: _.get(rows, '[0].road_address'),
         phone: _.get(rows, '[0].phone'),
-        lat: _.get(rows, '[0].lat'),
-        lng: _.get(rows, '[0].lng'),
+        mapx: _.get(rows, '[0].mapx'),
+        mapy: _.get(rows, '[0].mapy'),
 
         isGabolga: _.get(rows, '[0].user_id'),
     });
@@ -62,7 +62,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.lat && req.body.lng)) {
+    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.mapx && req.body.mapy)) {
         return res.status(400).send();
     }
 
@@ -80,9 +80,9 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
+    await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, mapx, mapy, writer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-    [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.lat, req.body.lng, req.session.user_id]);
+    [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
 
     const {data} = await postT.get('statuses/show', {
         id
