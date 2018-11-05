@@ -4,7 +4,7 @@ const _ = require('lodash');
 const moment = require('moment');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
-const twit = require('./common/twit');
+const getNewTwit = require('./common/twit');
 const postBotConfig = require('config').get('bot.post');
 const postT = new require('twit')(postBotConfig);
 
@@ -30,7 +30,7 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         LEFT JOIN my_map ON (tweet.tweet_id=my_map.tweet_id AND my_map.user_id='${req.session.user_id}')
         WHERE tweet.tweet_id=?`;
     const [rows] = await db.query(query, [id]);
-    const T = twit();
+    const T = getNewTwit();
     const result = await T.get('statuses/oembed', {
         id, 
         hide_media: true, 
@@ -99,7 +99,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
 
     const [users] = await db.query('SELECT oauth_token, oauth_token_secret, is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);
     if (users[0].is_auto_tweet) {
-        const T = twit(users[0].oauth_token, users[0].oauth_token_secret);
+        const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
         await T.post('statuses/update', {
             status: `#가볼가 에 '${req.body.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
         });

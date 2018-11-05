@@ -13,6 +13,7 @@ const postT = new twit(postBotConfig);
 const db = require('./common/db');
 const localSearch = require('./common/localSearch');
 const getNewTwit = require('./common/twit');
+const appT = getNewTwit();
 
 const statusIdRegex = /status\/([0-9]+)/;
 const gabolgaRegex = /gabolga.gamjaa.com\/tweet\/([0-9]+)/;
@@ -124,13 +125,20 @@ router.post('/', wrapAsync(async (req, res, next) => {
         }
 
         const url = _.get(req.body, 'direct_message_events[0].message_create.message_data.entities.urls[0].expanded_url');
-        const getIdFromUrl = url => {
+        const getIdFromUrlAsync = async url => {
             if (!url) {
                 return null;
             }
 
             if (statusIdRegex.test(url)) {
-                return statusIdRegex.exec(url)[1];
+                const id = statusIdRegex.exec(url)[1];
+                const {data} = await appT.get('statuses/show', {
+                    id,
+                    include_entities: true
+                });
+                const urlInTweet = _.get(data, 'entities.urls[0].expanded_url');
+
+                return urlInTweet && gabolgaRegex.test(urlInTweet) ? gabolgaRegex.exec(urlInTweet)[1] : id;
             }
 
             if (gabolgaRegex.test(url)) {
@@ -139,7 +147,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
             return null;
         };
-        const id = getIdFromUrl(url);
+        const id = await getIdFromUrlAsync(url);
         if (!id) {
             const [user] = await db.query('SELECT search_tweet_id FROM users WHERE user_id=?', [senderId]);
 
