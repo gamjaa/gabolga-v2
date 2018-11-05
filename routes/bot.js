@@ -106,7 +106,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 if (data.retweet_count >= 1000 
                     || (durationDays <= 3 && data.retweet_count >= 20) || (durationDays <= 7 && data.retweet_count >= 100)) {
                     await postT.post('statuses/update', {
-                        status: `@${data.user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 나만의 지도에 '${name}'를 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                        status: `@${data.user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 나만의 지도에 '${name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
                         in_reply_to_status_id: tweetId
                     }).catch(err => console.log(err));
                 }
@@ -119,6 +119,13 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 }
                 
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
+
+                const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [tweetId, senderId]);
+                alreadyGabolgas.forEach(async gabolga => {
+                    await sendDM(gabolga.user_id, {
+                        text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                    });
+                });
                 
                 return res.status(200).send();
             }

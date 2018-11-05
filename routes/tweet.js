@@ -92,7 +92,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     if (data.retweet_count >= 100 
         || (moment.duration(nowDate.diff(tweetDate)).asDays() <= 7 && data.retweet_count >= 20)) {
         await postT.post('statuses/update', {
-            status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 '${req.body.name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+            status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 나만의 지도에 '${req.body.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
             in_reply_to_status_id: id
         }).catch(err => console.error(err));
     }
@@ -104,8 +104,29 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
             status: `#가볼가 에 '${req.body.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
         });
     }
+
+    const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [id, req.session.user_id]);
+    alreadyGabolgas.forEach(async gabolga => {
+        await sendDM(gabolga.user_id, {
+            text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+        });
+    });
             
     return res.status(200).send();
 }));
 
 module.exports = router;
+
+async function sendDM(target_id, message_data) {
+    return postT.post('direct_messages/events/new', {
+        event: {
+            type: 'message_create',
+            message_create: {
+                target: {
+                    recipient_id: target_id
+                },
+                message_data
+            }
+        }
+    });
+}
