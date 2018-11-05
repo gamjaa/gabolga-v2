@@ -15,6 +15,7 @@ const localSearch = require('./common/localSearch');
 const getNewTwit = require('./common/twit');
 
 const statusIdRegex = /status\/([0-9]+)/;
+const gabolgaRegex = /gabolga.gamjaa.com\/tweet\/([0-9]+)/;
 
 // GET /webhook
 router.get('/', (req, res, next) => {
@@ -100,10 +101,11 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 });
                 const nowDate = moment();
                 const tweetDate = moment(data.created_at, 'ddd MMM DD HH:mm:ss ZZ YYYY');  // Fri Jun 22 04:51:49 +0000 2018
-                if (data.retweet_count >= 100 
-                    || (moment.duration(nowDate.diff(tweetDate)).asDays() <= 7 && data.retweet_count >= 20)) {
+                const durationDays = moment.duration(nowDate.diff(tweetDate)).asDays();
+                if (data.retweet_count >= 1000 
+                    || (durationDays <= 3 && data.retweet_count >= 20) || (durationDays <= 7 && data.retweet_count >= 100)) {
                     await postT.post('statuses/update', {
-                        status: `@${data.user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 '${name}'의 위치를 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                        status: `@${data.user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 나만의 지도에 '${name}'를 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
                         in_reply_to_status_id: tweetId
                     }).catch(err => console.log(err));
                 }
@@ -122,8 +124,23 @@ router.post('/', wrapAsync(async (req, res, next) => {
         }
 
         const url = _.get(req.body, 'direct_message_events[0].message_create.message_data.entities.urls[0].expanded_url');
-        if (!url || !statusIdRegex.test(url)) {
+        const getIdFromUrl = url => {
+            if (!url) {
+                return null;
+            }
 
+            if (statusIdRegex.test(url)) {
+                return statusIdRegex.exec(url)[1];
+            }
+
+            if (gabolgaRegex.test(url)) {
+                return gabolgaRegex.exec(url)[1];
+            }
+
+            return null;
+        };
+        const id = getIdFromUrl(url);
+        if (!id) {
             const [user] = await db.query('SELECT search_tweet_id FROM users WHERE user_id=?', [senderId]);
 
             if (!user.length || !user[0].search_tweet_id) {
@@ -175,7 +192,6 @@ router.post('/', wrapAsync(async (req, res, next) => {
             return res.status(200).send();
         }
 
-        const id = statusIdRegex.exec(url)[1];
         const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
 
         await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)',
