@@ -94,7 +94,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         await postT.post('statuses/update', {
             status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 나만의 지도에 '${req.body.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
             in_reply_to_status_id: id
-        }).catch(err => console.error(err));
+        }).catch(err => Promise.resolve(console.log(err)));
     }
 
     const [users] = await db.query('SELECT oauth_token, oauth_token_secret, is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);
