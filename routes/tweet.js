@@ -89,8 +89,9 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     });
     const nowDate = moment();
     const tweetDate = moment(data.created_at, 'ddd MMM DD HH:mm:ss ZZ YYYY');  // Fri Jun 22 04:51:49 +0000 2018
-    if (data.retweet_count >= 100 
-        || (moment.duration(nowDate.diff(tweetDate)).asDays() <= 7 && data.retweet_count >= 20)) {
+    const durationDays = moment.duration(nowDate.diff(tweetDate)).asDays();
+    if (data.user.id_str === req.session.user_id || data.retweet_count >= 1000 
+        || (durationDays <= 3 && data.retweet_count >= 20) || (durationDays <= 7 && data.retweet_count >= 100)) {
         await postT.post('statuses/update', {
             status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 나만의 지도에 '${req.body.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
             in_reply_to_status_id: id
