@@ -6,9 +6,9 @@ const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 const getNewTwit = require('./common/twit');
 const config = require('config');
+const appT = require('./common/twit')();
 const postBotConfig = config.get('bot.post');
 const postT = new require('twit')(postBotConfig);
-const mentionDeniedUsers = config.get('mention_denied_users');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -86,15 +86,17 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
     [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
 
-    const {data} = await postT.get('statuses/show', {
+    const {data} = await appT.get('statuses/show', {
         id
     });
+    const [mentionPermission] = await db.query('SELECT * FROM mention_permission WHERE user_id=?', [data.user.id_str]);
+    const isDenied = _.get(mentionPermission, '[0].is_denied');
     const isSendMention = ({user, retweet_count, created_at}) => {
         if (user.id_str === req.session.user_id) {
             return true;
         }
         
-        if (mentionDeniedUsers.includes(user.id_str)) {
+        if (isDenied) {
             return false;
         }
         
@@ -106,10 +108,42 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
             || (durationDays <= 3 && retweet_count >= 20) || (durationDays <= 7 && retweet_count >= 100);
     };
     if (isSendMention(data)) {
+        const setMentionPermission = async (userId, isDenied) => {
+            await db.query(`INSERT INTO mention_permission (user_id, is_denied) 
+            VALUES (?, ?) 
+            ON DUPLICATE KEY UPDATE is_denied=?`, [userId, isDenied, isDenied]);
+        };
+
+        if (!mentionPermission.length) {
+            await setMentionPermission(data.user.id_str, null);
+            await sendDM(data.user.id_str, {
+                text: `안녕하세요, ${data.user.name} 님.\n${data.user.name} 님께서 올리신 트윗과 관련된 장소를 해당 트윗 답글로 달았습니다. 주소 공유 측면과 함께 홍보성도 띄고 있어서 허락을 구하고자 메시지 드립니다.\n가볼가는 트위터 맛집 등을 편하게 찾아가고자 만든 비영리 사이트입니다. 답글이 달리는 것을 원치 않으시다면 "멘션거부"라고 DM 부탁드립니다.\n좋은 하루 보내시길 바랍니다. 감사합니다.`,
+                quick_reply: {
+                    type: 'options',
+                    options: [
+                        {
+                            label: '멘션허락',
+                            description: '답글이 달리는 것을 허락합니다',
+                            metadata: 1
+                        },
+                        {
+                            label: '멘션거부',
+                            description: '답글이 달리는 것을 거부합니다',
+                            metadata: 0
+                        }
+                    ]
+                }
+            }).catch(async () => {
+                return Promise.resolve(await postT.post('statuses/update', {
+                    status: `@${data.user.screen_name} 안녕하세요. 작성하신 트윗과 관련된 장소를 답글로 달았습니다. 주소 공유 측면과 함께 홍보성도 있어서 허락을 구하고자 연락 드립니다.\n가볼가는 트위터 맛집 등을 편하게 찾아가고자 만든 비영리 사이트입니다. 답글을 원치 않으시면 "멘션거부"라고 DM 부탁드립니다.\n감사합니다`
+                }));
+            }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
+        }
+
         await postT.post('statuses/update', {
             status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 나만의 지도에 '${req.body.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
             in_reply_to_status_id: id
-        }).catch(err => Promise.resolve(console.log(err)));
+        }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
     }
 
     const [users] = await db.query('SELECT oauth_token, oauth_token_secret, is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);

@@ -10,11 +10,11 @@ const dmBotConfig = config.get('bot.dm');
 const dmT = new twit(dmBotConfig);
 const postBotConfig = config.get('bot.post');
 const postT = new twit(postBotConfig);
-const mentionDeniedUsers = config.get('mention_denied_users');
 const db = require('./common/db');
 const localSearch = require('./common/localSearch');
 const getNewTwit = require('./common/twit');
 const appT = getNewTwit();
+const telegramSend = require('./telegram');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const gabolgaRegex = /gabolga.gamjaa.com\/tweet\/([0-9]+)/;
@@ -50,6 +50,58 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
         await db.query('INSERT INTO dm (dm_id, user_id, text) VALUES (?, ?, ?)', 
             [req.body.direct_message_events[0].id, senderId, text]);
+
+        const setMentionPermission = async (userId, isDenied) => {
+            await db.query(`INSERT INTO mention_permission (user_id, is_denied) 
+            VALUES (?, ?) 
+            ON DUPLICATE KEY UPDATE is_denied=?`, [userId, isDenied, isDenied]);
+        };
+        if (text.includes('멘션거부')) {
+            await setMentionPermission(senderId, true);
+            await sendDM(senderId, {
+                text: `불편을 드려 죄송합니다. 최근 7일간 ${req.body.users[senderId].name} 님 트윗에 달렸던 답글을 삭제하고, 앞으로 답글이 달리지 않도록 처리하겠습니다.\n혹시 생각이 바뀌신다면 언제든지 "멘션허락"이라고 보내주시면 됩니다.\n다시 한 번 죄송하다는 말씀드리며, 좋은 하루 보내시길 바랍니다. 감사합니다.`,
+                quick_reply: {
+                    type: 'options',
+                    options: [
+                        {
+                            label: '멘션허락',
+                            description: '답글이 달리는 것을 허락합니다',
+                            metadata: req.body.direct_message_events[0].id
+                        }
+                    ]
+                }
+            });
+            const {data} = await postT.get('search/tweets', {
+                q: `from:gabolga_bot to:${req.body.users[senderId].screen_name} #가볼가`,
+                count: 100
+            });
+            data.statuses.forEach(async status => {
+                await postT.post('statuses/destroy', {
+                    id: status.id_str
+                });
+            });
+
+            return res.status(200).send();
+        }
+
+        if (text.includes('멘션허락')) {
+            await setMentionPermission(senderId, false);
+            await sendDM(senderId, {
+                text: `허락해주셔서 감사합니다, ${req.body.users[senderId].name} 님!\n혹시 생각이 바뀌신다면 언제든지 "멘션거부"라고 보내주시면 됩니다. 불편하게 느끼시지 않도록 노력하겠습니다.\n좋은 하루 보내시길 바랍니다.`,
+                quick_reply: {
+                    type: 'options',
+                    options: [
+                        {
+                            label: '멘션거부',
+                            description: '답글이 달리는 것을 거부합니다',
+                            metadata: req.body.direct_message_events[0].id
+                        }
+                    ]
+                }
+            });
+
+            return res.status(200).send();
+        }
 
         const quickReply = _.get(req.body, 'direct_message_events[0].message_create.message_data.quick_reply_response.metadata');
         if (quickReply) {
@@ -98,15 +150,26 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     text: `${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 등록되었습니다! 감사합니다.\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
                 });
                 
-                const {data} = await postT.get('statuses/show', {
+                if (users[0].is_auto_tweet) {
+                    const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
+                    await T.post('statuses/update', {
+                        status: `#가볼가 에 '${name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                    });
+                }
+                
+                await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
+
+                const {data} = await appT.get('statuses/show', {
                     id: tweetId
                 });
+                const [mentionPermission] = await db.query('SELECT * FROM mention_permission WHERE user_id=?', [data.user.id_str]);
+                const isDenied = _.get(mentionPermission, '[0].is_denied');
                 const isSendMention = ({user, retweet_count, created_at}) => {
                     if (user.id_str === senderId) {
                         return true;
                     }
                     
-                    if (mentionDeniedUsers.includes(user.id_str)) {
+                    if (isDenied) {
                         return false;
                     }
                     
@@ -118,20 +181,37 @@ router.post('/', wrapAsync(async (req, res, next) => {
                         || (durationDays <= 3 && retweet_count >= 20) || (durationDays <= 7 && retweet_count >= 100);
                 };
                 if (isSendMention(data)) {
+                    if (!mentionPermission.length) {
+                        await setMentionPermission(data.user.id_str, null);
+                        await sendDM(data.user.id_str, {
+                            text: `안녕하세요, ${data.user.name} 님.\n${data.user.name} 님께서 올리신 트윗과 관련된 장소를 해당 트윗 답글로 달았습니다. 주소 공유 측면과 함께 홍보성도 띄고 있어서 허락을 구하고자 메시지 드립니다.\n가볼가는 트위터 맛집 등을 편하게 찾아가고자 만든 비영리 사이트입니다. 답글이 달리는 것을 원치 않으시다면 "멘션거부"라고 DM 부탁드립니다.\n좋은 하루 보내시길 바랍니다. 감사합니다.`,
+                            quick_reply: {
+                                type: 'options',
+                                options: [
+                                    {
+                                        label: '멘션허락',
+                                        description: '답글이 달리는 것을 허락합니다',
+                                        metadata: 1
+                                    },
+                                    {
+                                        label: '멘션거부',
+                                        description: '답글이 달리는 것을 거부합니다',
+                                        metadata: 0
+                                    }
+                                ]
+                            }
+                        }).catch(async () => {
+                            return Promise.resolve(await postT.post('statuses/update', {
+                                status: `@${data.user.screen_name} 안녕하세요. 작성하신 트윗과 관련된 장소를 답글로 달았습니다. 주소 공유 측면과 함께 홍보성도 있어서 허락을 구하고자 연락 드립니다.\n가볼가는 트위터 맛집 등을 편하게 찾아가고자 만든 비영리 사이트입니다. 답글을 원치 않으시면 "멘션거부"라고 DM 부탁드립니다.\n감사합니다`
+                            }));
+                        }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
+                    }
+
                     await postT.post('statuses/update', {
                         status: `@${data.user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 나만의 지도에 '${name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
                         in_reply_to_status_id: tweetId
-                    }).catch(err => Promise.resolve(console.log(err)));
+                    }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
                 }
-                
-                if (users[0].is_auto_tweet) {
-                    const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
-                    await T.post('statuses/update', {
-                        status: `#가볼가 에 '${name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
-                    });
-                }
-                
-                await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
 
                 const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [tweetId, senderId]);
                 alreadyGabolgas.forEach(async gabolga => {
@@ -187,6 +267,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
                         },
                     ]
                 });
+
+                await telegramSend(`@${req.body.users[senderId].screen_name}`, text);
     
                 return res.status(200).send();
             }
