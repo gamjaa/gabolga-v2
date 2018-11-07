@@ -5,8 +5,10 @@ const moment = require('moment');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 const getNewTwit = require('./common/twit');
-const postBotConfig = require('config').get('bot.post');
+const config = require('config');
+const postBotConfig = config.get('bot.post');
 const postT = new require('twit')(postBotConfig);
+const mentionDeniedUsers = config.get('mention_denied_users');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -87,11 +89,23 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     const {data} = await postT.get('statuses/show', {
         id
     });
-    const nowDate = moment();
-    const tweetDate = moment(data.created_at, 'ddd MMM DD HH:mm:ss ZZ YYYY');  // Fri Jun 22 04:51:49 +0000 2018
-    const durationDays = moment.duration(nowDate.diff(tweetDate)).asDays();
-    if (data.user.id_str === req.session.user_id || data.retweet_count >= 1000 
-        || (durationDays <= 3 && data.retweet_count >= 20) || (durationDays <= 7 && data.retweet_count >= 100)) {
+    const isSendMention = ({user, retweet_count, created_at}) => {
+        if (user.id_str === req.session.user_id) {
+            return true;
+        }
+        
+        if (mentionDeniedUsers.includes(user.id_str)) {
+            return false;
+        }
+        
+        const nowDate = moment();
+        const tweetDate = moment(created_at, 'ddd MMM DD HH:mm:ss ZZ YYYY');  // Fri Jun 22 04:51:49 +0000 2018
+        const durationDays = moment.duration(nowDate.diff(tweetDate)).asDays();
+
+        return retweet_count >= 1000 
+            || (durationDays <= 3 && retweet_count >= 20) || (durationDays <= 7 && retweet_count >= 100);
+    };
+    if (isSendMention(data)) {
         await postT.post('statuses/update', {
             status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 나만의 지도에 '${req.body.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
             in_reply_to_status_id: id
