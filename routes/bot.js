@@ -42,6 +42,30 @@ router.post('/', wrapAsync(async (req, res, next) => {
         return res.status(403).send();
     }
     
+    // Favorite
+    if (_.get(req.body, 'favorite_events[0].favorited_status.user.id_str') === '903176813517479936') {
+        const url = _.get(req.body, 'favorite_events[0].favorited_status.entities.urls[0].expanded_url');
+        if (gabolgaRegex.test(url)) {
+            const id = gabolgaRegex.exec(url)[1];
+            await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)',
+                [req.body.favorite_events[0].user.id_str, id]);
+        }
+        
+        return res.status(200).send();
+    }
+
+    // RT
+    if (_.get(req.body, 'tweet_create_events[0].retweeted_status.user.id_str') === '903176813517479936') {
+        const url = _.get(req.body, 'tweet_create_events[0].retweeted_status.entities.urls[0].expanded_url');
+        if (gabolgaRegex.test(url)) {
+            const id = gabolgaRegex.exec(url)[1];
+            await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)',
+                [req.body.tweet_create_events[0].user.id_str, id]);
+        }
+        
+        return res.status(200).send();
+    }
+
     // DM
     if (req.body.direct_message_events && 
         req.body.direct_message_events[0].message_create.sender_id !== '903176813517479936') {
