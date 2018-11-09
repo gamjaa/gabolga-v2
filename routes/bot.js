@@ -45,11 +45,31 @@ router.post('/', wrapAsync(async (req, res, next) => {
     // Favorite
     if (_.get(req.body, 'favorite_events[0].favorited_status.user.id_str') === '903176813517479936') {
         const url = _.get(req.body, 'favorite_events[0].favorited_status.entities.urls[0].expanded_url');
-        if (gabolgaRegex.test(url)) {
-            const id = gabolgaRegex.exec(url)[1];
-            await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)',
-                [req.body.favorite_events[0].user.id_str, id]);
+        if (!gabolgaRegex.test(url)) {
+            return res.status(200).send();
         }
+        
+        const userId = req.body.favorite_events[0].user.id_str;
+        const id = gabolgaRegex.exec(url)[1];
+        const [users] = await db.query('SELECT user_id FROM users WHERE user_id=?', [userId]);
+        if (!users.length) {
+            await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)',
+                [userId, id]);
+            return res.status(200).send();
+        }
+
+        const [myMaps] = await db.query('SELECT tweet_id FROM my_map WHERE user_id=? AND tweet_id=?', [userId, id]);
+        if (myMaps.length) {
+            return res.status(200).send();
+        }
+
+        await db.query('INSERT INTO my_map (user_id, tweet_id) VALUES (?, ?)',
+            [userId, id]);
+
+        const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
+        await sendDM(userId, {
+            text: `${req.body.favorite_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+        }).catch((err) => Promise.resolve(console.log(err.stack)));
         
         return res.status(200).send();
     }
@@ -57,12 +77,32 @@ router.post('/', wrapAsync(async (req, res, next) => {
     // RT
     if (_.get(req.body, 'tweet_create_events[0].retweeted_status.user.id_str') === '903176813517479936') {
         const url = _.get(req.body, 'tweet_create_events[0].retweeted_status.entities.urls[0].expanded_url');
-        if (gabolgaRegex.test(url)) {
-            const id = gabolgaRegex.exec(url)[1];
-            await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)',
-                [req.body.tweet_create_events[0].user.id_str, id]);
+        if (!gabolgaRegex.test(url)) {
+            return res.status(200).send();
         }
         
+        const userId = req.body.tweet_create_events[0].user.id_str;
+        const id = gabolgaRegex.exec(url)[1];
+        const [users] = await db.query('SELECT user_id FROM users WHERE user_id=?', [userId]);
+        if (!users.length) {
+            await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)',
+                [userId, id]);
+            return res.status(200).send();
+        }
+
+        const [myMaps] = await db.query('SELECT tweet_id FROM my_map WHERE user_id=? AND tweet_id=?', [userId, id]);
+        if (myMaps.length) {
+            return res.status(200).send();
+        }
+
+        await db.query('INSERT INTO my_map (user_id, tweet_id) VALUES (?, ?)',
+            [userId, id]);
+
+        const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
+        await sendDM(userId, {
+            text: `${req.body.tweet_create_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+        }).catch(() => Promise.resolve());
+
         return res.status(200).send();
     }
 
@@ -365,8 +405,17 @@ router.post('/', wrapAsync(async (req, res, next) => {
     // Follow
     if (req.body.follow_events &&
         req.body.follow_events[0].source.id !== '903176813517479936') {
-        await sendDM(req.body.follow_events[0].source.id, {
-            text: `반갑습니다, ${req.body.follow_events[0].source.name} 님! 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${req.body.follow_events[0].source.name} 님의 지도에 기록해드릴게요.`
+        const userId = req.body.follow_events[0].source.id_str;
+        const screenName = req.body.follow_events[0].source.screen_name;
+        const name = req.body.follow_events[0].source.name;
+
+        await db.query(`INSERT INTO users (user_id, screen_name) 
+        VALUES (?, ?) 
+        ON DUPLICATE KEY UPDATE screen_name=?`, 
+        [userId, screenName, screenName]);
+
+        await sendDM(userId, {
+            text: `반갑습니다, ${name} 님! 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${name} 님의 지도에 기록해드릴게요.`
         });
         
         return res.status(200).send();
