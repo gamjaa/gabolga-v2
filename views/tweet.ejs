@@ -2,9 +2,9 @@
 <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=OkoqrDNq7sZ8zfy4x5To&submodules=geocoder"></script>
 <div id="map">
     <div id="map_pop">
-      <script>var tweet = false;</script>
+      <script>let isShowTweet = false;</script>
   
-      <button id="tweet_switch" onclick="tweetSwitch(tweet)" class="btn btn-sm btn-primary" style="position: absolute; z-index: 3;">ㅡ</button>
+      <button id="tweet_switch" onclick="tweetSwitch(isShowTweet)" class="btn btn-sm btn-primary">숨기기</button>
   
       <div id="tweet">
         <%- tweetHtml %>
@@ -12,34 +12,35 @@
       <div id="padding"></div>
   
       <script>
+      const tweetSwitch = (i) => {
+        if (i) {
+          document.getElementById('tweet').style.display = 'block';
+          document.getElementById('tweet_switch').innerText = '숨기기';
+          document.getElementById('padding').style.paddingBottom = '0';
+          isShowTweet = false;
+        } else {
+          document.getElementById('tweet').style.display = 'none';
+          document.getElementById('tweet_switch').innerText = '트윗 보이기';
+          document.getElementById('padding').style.paddingBottom = '40px';
+          isShowTweet = true;
+        }
+      };
+
       document.body.scrollTop = 0;
       if(window.innerHeight < 600) {
-        tweet = false;
-        tweetSwitch(tweet);
+        isShowTweet = false;
+        tweetSwitch(isShowTweet);
       }
       window.onresize = function() {
         document.body.scrollTop = 0;
         if(window.innerHeight < 600) {
-          tweet = false;
-          tweetSwitch(tweet);
+          isShowTweet = false;
+          tweetSwitch(isShowTweet);
         } else {
-          tweet = true;
-          tweetSwitch(tweet);
+          isShowTweet = true;
+          tweetSwitch(isShowTweet);
         }
       };
-      function tweetSwitch(i) {
-        if(i) {
-          document.getElementById('tweet').style.display = 'block';
-          document.getElementById('tweet_switch').innerText = 'ㅡ';
-          document.getElementById('padding').style.paddingBottom = '0';
-          tweet = false;
-        } else {
-          document.getElementById('tweet').style.display = 'none';
-          document.getElementById('tweet_switch').innerText = 'ㅁ';
-          document.getElementById('padding').style.paddingBottom = '30px';
-          tweet = true;
-        }
-      }
       </script>
   
       <% if (!req.session.isLogin && !isRegistered) { %>
@@ -131,7 +132,7 @@
 <% if (isRegistered) { %>
   new Clipboard('.copy');
   const map = new naver.maps.Map(mapDiv, {
-    center: new naver.maps.LatLng(point.lat(), point.lng()),
+    center: new naver.maps.LatLng(point.lat() + 0.002, point.lng()),
     level: 3
   });
   const marker = new naver.maps.Marker({
