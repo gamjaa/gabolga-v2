@@ -47,7 +47,7 @@
     };
 
     const markers = [];
-    let currentMarkerIndex = 0;
+    let currentMarkerIndex = -1;
 
     <% if (tweet.name) { %>
         const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= tweet.mapx %>, <%= tweet.mapy %>));
@@ -58,6 +58,7 @@
             icon: '/img/pin_over.png'
         });
         markers.push(marker);
+        currentMarkerIndex = 0;
         map.setCenter(position);
 
         tweetDataDiv.style.display = 'block';
@@ -100,7 +101,16 @@
                 const index = markers.length - 1;
                 
                 naver.maps.Event.addListener(marker, "click", function(e) {
-                    markers[currentMarkerIndex].setIcon();
+                    if (currentMarkerIndex === index) {
+                        tweetDataDiv.style.display = 'none';
+                        marker.setIcon();
+                        currentMarkerIndex = -1;
+                        return;
+                    }
+
+                    if (currentMarkerIndex >= 0) {
+                        markers[currentMarkerIndex].setIcon();
+                    }
                     marker.setIcon('/img/pin_over.png');
                     currentMarkerIndex = index;
                     map.panTo(position);
