@@ -10,16 +10,35 @@ router.get('/', function(req, res, next) {
 });
 
 // GET /my/map
-router.get('/map', function(req, res, next) {
+router.get('/map', wrapAsync(async (req, res, next) => {
     if (!req.session.isLogin) {
         return res.redirect('/login?refer=/my/map');
     }
 
+    const getTweetData = async () => {
+        if (!req.query.tweet_id) {
+            return {};
+        }
+
+        const [tweets] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, mapx, mapy 
+        FROM my_map
+        JOIN tweet ON my_map.tweet_id=tweet.tweet_id
+        WHERE user_id=? AND my_map.tweet_id=?`, [req.session.user_id, req.query.tweet_id]);
+        if (!tweets.length) {
+            return {};
+        }
+
+        return tweets[0];
+    };
+
+    const tweet = await getTweetData();
+
     return res.render('map', { 
         req,
         title: '내 지도',
+        tweet,
     });
-});
+}));
 
 // GET /my/list
 router.get('/list', wrapAsync(async (req, res, next) => {
