@@ -1,8 +1,9 @@
 <%- include('header'); -%>
+<script src="/js/clipboard.min.js"></script>
 <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=OkoqrDNq7sZ8zfy4x5To&submodules=geocoder"></script>
 <div id="map">
     <div id="map_pop">
-      <script>let isShowTweet = false;</script>
+      <script>let isShowTweet = true;</script>
   
       <button id="tweet_switch" onclick="tweetSwitch(isShowTweet)" class="btn btn-sm btn-primary">숨기기</button>
   
@@ -27,18 +28,15 @@
       };
 
       document.body.scrollTop = 0;
-      if(window.innerHeight < 600) {
-        isShowTweet = false;
-        tweetSwitch(isShowTweet);
+      if(window.innerHeight < 900) {
+        tweetSwitch(false);
       }
       window.onresize = function() {
         document.body.scrollTop = 0;
-        if(window.innerHeight < 600) {
-          isShowTweet = false;
-          tweetSwitch(isShowTweet);
+        if(window.innerHeight < 650) {
+          tweetSwitch(false);
         } else {
-          isShowTweet = true;
-          tweetSwitch(isShowTweet);
+          tweetSwitch(true);
         }
       };
       </script>

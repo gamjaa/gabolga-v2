@@ -20,7 +20,7 @@ router.get('/map', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    const [rows] = await db.query(`SELECT tweet.tweet_id, name, mapx, mapy 
+    const [rows] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, mapx, mapy 
         FROM my_map
         JOIN tweet ON my_map.tweet_id=tweet.tweet_id
         WHERE user_id=? AND mapx BETWEEN ? AND ? AND mapy BETWEEN ? AND ?`,

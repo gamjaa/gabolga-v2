@@ -1,93 +1,116 @@
 <%- include('header') %>
-<div style="position: fixed; top: 70px; left: 10px; width: 50px; height: 50px; z-index: 2;">
-    <a onclick="isWatch = true; getGeo(watchID);"><img src="/img/iconmonstr-crosshair-9-2402.png" width="50px" height="50px"></a>
+<script src="/js/clipboard.min.js"></script>
+<div id="map">
+    <div id="now_pos">
+            <a onclick="getGeo();"><img src="/img/iconmonstr-crosshair-9-2402.png" width="50px" height="50px"></a>
+    </div>
+
+    <div id="tweet_data">
+        <script>
+            function openRoute(e) {
+                window.open(e.getAttribute('data-value'), '_blank');
+            }
+        </script>
+        <div id="route_link">
+            <a herf="#" title="카카오맵(다음 지도) 길찾기" id="route_kakao" onclick="gtag('event', '다음길찾기'); openRoute(this)"><img src="/img/kakaomap_icon.png"></a>
+            <a herf="#" title="네이버 지도 길찾기" id="route_naver" onclick="gtag('event', '네이버길찾기'); openRoute(this)"><img src="/img/navermap_icon.png"></a>
+        </div>
+        <h3 id="tweet_name"></h3>
+        <span id="tweet_road_address"></span> <button id="tweet_road_address_btn" class="btn btn-link btn-sm copy">복사</button><br>
+        <span id="tweet_address"></span> <button id="tweet_address_btn" class="btn btn-link btn-sm copy">복사</button><br>
+        <span id="tweet_phone"></span> <button id="tweet_phone_btn" class="btn btn-link btn-sm copy">복사</button>
+    </div>
 </div>
-<div id="map"></div>
 <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=OkoqrDNq7sZ8zfy4x5To&submodules=geocoder"></script>
 <script>
     const mapDiv = document.getElementById('map');
+    const tweetDataDiv = document.getElementById('tweet_data');
+    const tweetNameH = document.getElementById('tweet_name');
+    const tweetRoadAddressSpan = document.getElementById('tweet_road_address');
+    const tweetAddressSpan = document.getElementById('tweet_address');
+    const tweetPhoneSpan = document.getElementById('tweet_phone');
+    const tweetRoadAddressBtn = document.getElementById('tweet_road_address_btn');
+    const tweetAddressBtn = document.getElementById('tweet_address_btn');
+    const tweetPhoneBtn = document.getElementById('tweet_phone_btn');
+    const routeKakaoA = document.getElementById('route_kakao');
+    const routeNaverA = document.getElementById('route_naver');
+
+    new Clipboard('.copy');
+
     const map = new naver.maps.Map(mapDiv);
-    let watchID = null;
-    let isWatch = false;
-    let lat, lng;
+
+    const isAlreadyExistMarker = (name, position) => {
+        return markers.some(marker => {
+            const markerPos = marker.getPosition();
+            return markerPos.x === position.x && markerPos.y === position.y && marker.getTitle() === name;
+        });
+    };
 
     const markers = [];
+    let currentMarkerIndex = 0;
     const drawMarkers = () => {
         const bounds = map.getBounds();
         const min = naver.maps.TransCoord.fromLatLngToTM128(bounds.getMin());
         const max = naver.maps.TransCoord.fromLatLngToTM128(bounds.getMax());
         httpGet(`/api/map?minX=${min.x}&maxX=${max.x}&minY=${min.y}&maxY=${max.y}`, (rows) => {
-            markers.forEach(marker => marker.setMap(null));
-            markers.length = 0;
             rows.forEach(row => {
                 const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(row.mapx, row.mapy));
+                
+                if (isAlreadyExistMarker(row.name, position)) {
+                    return;
+                }
+                
                 const marker = new naver.maps.Marker({
                     position,
-                    map
-                });
-    
-                const infowindow = new naver.maps.InfoWindow({
-                    content: row.name
-                });
-    
-                naver.maps.Event.addListener(marker, "mouseover", function(e) {
-                    infowindow.open(map, marker);
-                });
-
-                naver.maps.Event.addListener(marker, "mouseout", function(e) {
-                    infowindow.close();
-                });
-
-                naver.maps.Event.addListener(marker, "click", function(e) {
-                    window.open(`/tweet/${row.tweet_id}`, '_blank');
+                    map,
+                    title: row.name
                 });
 
                 markers.push(marker);
+                const index = markers.length - 1;
+                
+                naver.maps.Event.addListener(marker, "click", function(e) {
+                    markers[currentMarkerIndex].setIcon();
+                    marker.setIcon('/img/pin_over.png');
+                    currentMarkerIndex = index;
+                    map.panTo(position);
+
+                    tweetDataDiv.style.display = 'block';
+
+                    tweetNameH.innerHTML = `<a href="/tweet/${row.tweet_id}" target="_blank">${row.name}</a>`;
+                    tweetRoadAddressSpan.textContent = row.road_address;
+                    tweetAddressSpan.textContent = `(${row.address})`;
+                    tweetPhoneSpan.textContent = row.phone;
+
+                    tweetRoadAddressBtn.style.display = row.road_address ? 'inline-block' : 'none';
+                    tweetAddressBtn.style.display = row.address ? 'inline-block' : 'none';
+                    tweetPhoneBtn.style.display = row.phone ? 'inline-block' : 'none';
+                    tweetRoadAddressBtn.setAttribute('data-clipboard-text', row.road_address);
+                    tweetAddressBtn.setAttribute('data-clipboard-text', row.address);
+                    tweetPhoneBtn.setAttribute('data-clipboard-text', row.phone);
+
+                    routeKakaoA.setAttribute('data-value', `http://map.daum.net/link/to/${row.name},${position.lat()},${position.lng()}`);
+                    routeNaverA.setAttribute('data-value', `https://map.naver.com/?menu=route&etext=${row.name}&elat=${position.lat()}&elng=${position.lng()}`);                    
+                });
             });
         });
     };
 
-    naver.maps.Event.addListener(map, 'dragstart', function(e) {
-        watchID = null;
-        isWatch = false;
-    });
-    naver.maps.Event.addListener(map, 'dragend', function(e) {
-        drawMarkers();
-    });
-    naver.maps.Event.addListener(map, 'zoom_changed', function(level) {
+    naver.maps.Event.addListener(map, 'idle', function(e) {
         drawMarkers();
     });
 
-    const moveMap = (lat, lng) => {
-        map.panTo(new naver.maps.LatLng(lat, lng));
-        drawMarkers();
-    };
-
-    const getGeo = function(watchID) {
-        if (lat && lng) {
-            moveMap(lat, lng);
-        }
-
-        watchID = navigator.geolocation.watchPosition(function(position) {
-            if (isWatch) {
-                moveMap(position.coords.latitude, position.coords.longitude);
-                lat = position.coords.latitude;
-                lng = position.coords.longitude;
-            }
-        });
-    }
-
-    window.onload = function() {
+    const getGeo = function() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 lat = position.coords.latitude;
                 lng = position.coords.longitude;
-                moveMap(lat, lng);
+                map.panTo(new naver.maps.LatLng(lat, lng));
             });
         } 
-        // 초기 로딩
-        drawMarkers();
     };
+
+    window.onload = drawMarkers;
 
     function httpGet(url, callback) {
         const http = new XMLHttpRequest();
