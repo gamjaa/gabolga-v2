@@ -157,7 +157,14 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [id, req.session.user_id]);
     alreadyGabolgas.forEach(async gabolga => {
         await sendDM(gabolga.user_id, {
-            text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+            text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+            ctas: [
+                {
+                    type: 'web_url',
+                    label: '내 지도 보기',
+                    url: `https://gabolga.gamjaa.com/my/map?tweet_id=${id}`
+                }
+            ]
         });
     });
             

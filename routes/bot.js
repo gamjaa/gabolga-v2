@@ -68,7 +68,14 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
         const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
         await sendDM(userId, {
-            text: `${req.body.favorite_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+            text: `${req.body.favorite_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!`,
+            ctas: [
+                {
+                    type: 'web_url',
+                    label: '내 지도 보기',
+                    url: `https://gabolga.gamjaa.com/my/map?tweet_id=${id}`
+                }
+            ]
         }).catch((err) => Promise.resolve(console.log(err.stack)));
         
         return res.status(200).send();
@@ -100,7 +107,14 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
         const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
         await sendDM(userId, {
-            text: `${req.body.tweet_create_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+            text: `${req.body.tweet_create_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!`,
+            ctas: [
+                {
+                    type: 'web_url',
+                    label: '내 지도 보기',
+                    url: `https://gabolga.gamjaa.com/my/map?tweet_id=${id}`
+                }
+            ]
         }).catch(() => Promise.resolve());
 
         return res.status(200).send();
@@ -211,7 +225,14 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 [tweetId, name, address, road_address, phone, mapy, mapx, senderId]);
                 
                 await sendDM(senderId, {
-                    text: `${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 등록되었습니다! 감사합니다.\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                    text: `${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 등록되었습니다! 감사합니다.`,
+                    ctas: [
+                        {
+                            type: 'web_url',
+                            label: '내 지도 보기',
+                            url: `https://gabolga.gamjaa.com/my/map?tweet_id=${tweetId}`
+                        }
+                    ]
                 });
                 
                 if (users[0].is_auto_tweet) {
@@ -280,7 +301,14 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [tweetId, senderId]);
                 alreadyGabolgas.forEach(async gabolga => {
                     await sendDM(gabolga.user_id, {
-                        text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                        text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                        ctas: [
+                            {
+                                type: 'web_url',
+                                label: '내 지도 보기',
+                                url: `https://gabolga.gamjaa.com/my/map?tweet_id=${tweetId}`
+                            }
+                        ]
                     });
                 });
                 
