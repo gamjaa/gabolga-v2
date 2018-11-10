@@ -3,6 +3,7 @@ const router = express.Router();
 const moment = require('moment');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
+const hostname = require('config').get('domain');
 
 // GET /my
 router.get('/', function(req, res, next) {
@@ -36,6 +37,7 @@ router.get('/map', wrapAsync(async (req, res, next) => {
     return res.render('map', { 
         req,
         title: '내 지도',
+        hostname,
         tweet,
     });
 }));

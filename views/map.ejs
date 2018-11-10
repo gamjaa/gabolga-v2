@@ -36,6 +36,7 @@
     const routeNaverA = document.getElementById('route_naver');
 
     new Clipboard('.copy');
+    const originalUrl = `<%= hostname %><%= req.baseUrl %><%= req.path %>`;
 
     const map = new naver.maps.Map(mapDiv);
 
@@ -54,29 +55,46 @@
         const marker = new naver.maps.Marker({
             position,
             map,
-            title: '<%= tweet.name %>',
-            icon: '/img/pin_over.png'
+            title: '<%= tweet.name %>'
         });
-        markers.push(marker);
-        currentMarkerIndex = 0;
         map.setCenter(position);
+        markers.push(marker);
+        const click = () => {
+            if (currentMarkerIndex === 0) {
+                history.replaceState(null, null, originalUrl);
+                tweetDataDiv.style.display = 'none';
+                marker.setIcon();
+                currentMarkerIndex = -1;
+                return;
+            }
 
-        tweetDataDiv.style.display = 'block';
+            history.replaceState(null, null, `${originalUrl}?tweet_id=<%= req.query.tweet_id %>`);
+            if (currentMarkerIndex >= 0) {
+                markers[currentMarkerIndex].setIcon();
+            }
+            marker.setIcon('/img/pin_over.png');
+            currentMarkerIndex = 0;
+            map.panTo(position);
 
-        tweetNameH.innerHTML = `<a href="/tweet/<%= req.query.tweet_id %>" target="_blank"><%= tweet.name %></a>`;
-        tweetRoadAddressSpan.textContent = '<%= tweet.road_address %>';
-        tweetAddressSpan.textContent = `(<%= tweet.address %>)`;
-        tweetPhoneSpan.textContent = '<%= tweet.phone %>';
+            tweetDataDiv.style.display = 'block';
 
-        tweetRoadAddressBtn.style.display = '<%= tweet.road_address ? 'inline-block' : 'none' %>';
-        tweetAddressBtn.style.display = '<%= tweet.address ? 'inline-block' : 'none' %>';
-        tweetPhoneBtn.style.display = '<%= tweet.phone ? 'inline-block' : 'none' %>';
-        tweetRoadAddressBtn.setAttribute('data-clipboard-text', '<%= tweet.road_address %>');
-        tweetAddressBtn.setAttribute('data-clipboard-text', '<%= tweet.address %>');
-        tweetPhoneBtn.setAttribute('data-clipboard-text', '<%= tweet.phone %>');
+            tweetNameH.innerHTML = `<a href="/tweet/<%= req.query.tweet_id %>" target="_blank"><%= tweet.name %></a>`;
+            tweetRoadAddressSpan.textContent = '<%= tweet.road_address %>';
+            tweetAddressSpan.textContent = `(<%= tweet.address %>)`;
+            tweetPhoneSpan.textContent = '<%= tweet.phone %>';
 
-        routeKakaoA.setAttribute('data-value', `http://map.daum.net/link/to/<%= tweet.name %>,${position.lat()},${position.lng()}`);
-        routeNaverA.setAttribute('data-value', `https://map.naver.com/?menu=route&etext=<%= tweet.name %>&elat=${position.lat()}&elng=${position.lng()}`);
+            tweetRoadAddressBtn.style.display = '<%= tweet.road_address ? 'inline-block' : 'none' %>';
+            tweetAddressBtn.style.display = '<%= tweet.address ? 'inline-block' : 'none' %>';
+            tweetPhoneBtn.style.display = '<%= tweet.phone ? 'inline-block' : 'none' %>';
+            tweetRoadAddressBtn.setAttribute('data-clipboard-text', '<%= tweet.road_address %>');
+            tweetAddressBtn.setAttribute('data-clipboard-text', '<%= tweet.address %>');
+            tweetPhoneBtn.setAttribute('data-clipboard-text', '<%= tweet.phone %>');
+
+            routeKakaoA.setAttribute('data-value', `http://map.daum.net/link/to/<%= tweet.name %>,${position.lat()},${position.lng()}`);
+            routeNaverA.setAttribute('data-value', `https://map.naver.com/?menu=route&etext=<%= tweet.name %>&elat=${position.lat()}&elng=${position.lng()}`);
+        };
+        click();
+        naver.maps.Event.addListener(marker, "click", click);
     <% } %>
 
     const drawMarkers = () => {
@@ -102,12 +120,14 @@
                 
                 naver.maps.Event.addListener(marker, "click", function(e) {
                     if (currentMarkerIndex === index) {
+                        history.replaceState(null, null, originalUrl);
                         tweetDataDiv.style.display = 'none';
                         marker.setIcon();
                         currentMarkerIndex = -1;
                         return;
                     }
 
+                    history.replaceState(null, null, `${originalUrl}?tweet_id=${row.tweet_id}`);
                     if (currentMarkerIndex >= 0) {
                         markers[currentMarkerIndex].setIcon();
                     }
