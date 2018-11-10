@@ -134,7 +134,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
             VALUES (?, ?) 
             ON DUPLICATE KEY UPDATE is_denied=?`, [userId, isDenied, isDenied]);
         };
-        if (text.includes('멘션거부')) {
+        if (/멘션\s?거부/.test(text)) {
             await setMentionPermission(senderId, true);
             await sendDM(senderId, {
                 text: `불편을 드려 죄송합니다. 최근 7일간 ${req.body.users[senderId].name} 님 트윗에 달렸던 답글을 삭제하고, 앞으로 답글이 달리지 않도록 처리하겠습니다.\n혹시 생각이 바뀌신다면 언제든지 "멘션허락"이라고 보내주시면 됩니다.\n다시 한 번 죄송하다는 말씀드리며, 좋은 하루 보내시길 바랍니다. 감사합니다.`,
@@ -162,7 +162,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
             return res.status(200).send();
         }
 
-        if (text.includes('멘션허락')) {
+        if (/멘션\s?허락/.test(text)) {
             await setMentionPermission(senderId, false);
             await sendDM(senderId, {
                 text: `허락해주셔서 감사합니다, ${req.body.users[senderId].name} 님!\n혹시 생각이 바뀌신다면 언제든지 "멘션거부"라고 보내주시면 됩니다. 불편하게 느끼시지 않도록 노력하겠습니다.\n좋은 하루 보내시길 바랍니다.`,
