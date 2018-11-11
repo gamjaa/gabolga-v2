@@ -33,6 +33,33 @@ router.get('/random', wrapAsync(async (req, res, next) => {
     return res.redirect(`/tweet/${rows[_.random(rows.length - 1, false)].tweet_id}`);
 }));
 
+// GET /search
+router.get('/search', wrapAsync(async (req, res, next) => {
+    if (!req.query.q || req.query.q.length < 2 || /^\s*$/.test(req.query.q)) {
+        return res.status(400).send('2글자 이상으로 검색해주세요');
+    }
+    
+    const q = `("${req.query.q}") (*${req.query.q.replace(/\s/g, '* *')}*)`;
+    const query = req.session.isLogin 
+        ? `SELECT tweet.tweet_id, name, address, road_address, phone, user_id, MATCH(name, address, road_address) AGAINST(? IN BOOLEAN MODE) as score
+        FROM tweet
+        LEFT JOIN (SELECT * FROM my_map WHERE user_id='${req.session.user_id}') my_map ON tweet.tweet_id=my_map.tweet_id
+        WHERE MATCH(name, address, road_address) AGAINST(? IN BOOLEAN MODE)
+        ORDER BY score DESC`
+        : `SELECT tweet_id, name, road_address, address, phone, MATCH(name, address, road_address) AGAINST(? IN BOOLEAN MODE) as score
+        FROM tweet
+        WHERE MATCH(name, address, road_address) AGAINST(? IN BOOLEAN MODE)
+        ORDER BY score DESC`
+    const [rows] = await db.query(query, [q, q]);
+
+    return res.render('search', { 
+        req,
+        title: `검색 결과(${req.query.q})`,
+
+        rows,
+    });
+}));
+
 // GET /login
 router.get('/login', function(req, res, next) {
     if (req.session.isLogin) {

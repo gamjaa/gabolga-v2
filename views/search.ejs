@@ -1,44 +1,40 @@
 <%- include('header') %>
 <div class="container">
   <h3>
-    내 지도(목록으로 보기)
-    <small class="text-muted">가볼가 한 장소를 목록으로 봅니다.</small>
+    <%= req.query.q %>
+    <small class="text-muted">에 대한 검색 결과입니다. (총 <%= rows.length %>개)</small>
   </h3>
   <table id="list" class="table table-hover">
   <thead>
     <tr>
       <th>#</th>
       <th>이름</th>
-      <th class="mobile">주소</th>
+      <th>주소</th>
       <th class="mobile">전화번호</th>
-      <th class="mobile">추가일</th>
-      <th>-</th>
+      <% if (req.session.isLogin) { %>
+          <th>-</th>
+      <% } %>
     </tr>
   </thead>
   <tbody>
     <% if (!rows.length) { %>
         <tr>
-            <td colspan="6">앗! 가볼가 한 트윗이 없어요!</td>
+            <td colspan="6">검색 결과가 없네요,,,</td>
         </tr>
     <% } else { 
         rows.forEach((row, index) => { %>
             <tr>
                 <th onclick="link('<%= row.tweet_id %>')" scope="row"><%= index +1 %></th>
-                <% if (!row.name) { %>
-                    <td class="text-muted" onclick="link('<%= row.tweet_id %>')">미등록된 장소</td>
-                    <td class="mobile text-muted" onclick="link('<%= row.tweet_id %>')">장소 정보를 등록해주세요 ;^;</td>
-                    <td class="mobile text-muted" onclick="link('<%= row.tweet_id %>')">-</td>
-                <% } else { %>
                     <td onclick="link('<%= row.tweet_id %>')"><%= row.name %></td>
                     <% if (row.road_address) { %>
-                        <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.road_address %><br>(<%= row.address %>)</td>
+                        <td onclick="link('<%= row.tweet_id %>')"><%= row.road_address %><br>(<%- row.address %>)</td>
                     <% } else { %>
-                        <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.address %></td>
+                        <td onclick="link('<%= row.tweet_id %>')"><%= row.address %></td>
                     <% } %>
                     <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.phone || '-' %></td>
-                    <% } %>
-                <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= moment(row.add_time).format('YY/MM/DD') %></td>
-                <td><button id="<%= row.tweet_id %>" class="btn btn-danger list_btn" onclick="gabolga('<%= row.tweet_id %>')">가볼가 취소</button></td>
+                <% if (req.session.isLogin) { %>
+                <td><button id="<%= row.tweet_id %>" class="btn <%= row.user_id ? 'btn-danger' : 'btn-primary' %> list_btn" onclick="gabolga('<%= row.tweet_id %>')"><%= row.user_id ? '가볼가 취소' : '가볼가 하기' %></button></td>
+                <% } %>
             </tr>
         <% })
     } %>
@@ -46,6 +42,17 @@
 </table>
 
 <script>
+    const listTable = document.getElementById('list');
+    const q = '<%= req.query.q %>';
+    const regex = new RegExp(`${q.split(' ').join('|')}`, 'g');
+    window.onload = () => {
+        for (let i = listTable.rows.length - 1; i > 0; i--) {
+            const name = listTable.rows[i].cells[1];
+            const address = listTable.rows[i].cells[2];
+            name.innerHTML = name.innerHTML.replace(regex, `<b>$&</b>`);
+            address.innerHTML = address.innerHTML.replace(regex, `<b>$&</b>`);
+        }
+    };
     function httpGet(url, callback) {
         const http = new XMLHttpRequest();
         http.open('GET', url, true);

@@ -30,12 +30,12 @@ router.get('/map', wrapAsync(async (req, res, next) => {
 
 // GET /api/tweet
 router.get('/tweet', function(req, res, next) {
-    if (!statusIdRegex.test(req.query.url)) {
-        return res.status(400).send();
-    }
-
     if (idRegex.test(req.query.url)) {
         return res.redirect(`/tweet/${req.query.url}`);
+    }
+    
+    if (!statusIdRegex.test(req.query.url)) {
+        return res.redirect(`/search?q=${req.query.url}`)
     }
 
     return res.redirect(`/tweet/${statusIdRegex.exec(req.query.url)[1]}`);

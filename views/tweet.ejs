@@ -28,12 +28,12 @@
       };
 
       document.body.scrollTop = 0;
-      if(window.innerHeight < 900) {
+      if (window.innerHeight < 900) {
         tweetSwitch(false);
       }
       window.onresize = function() {
         document.body.scrollTop = 0;
-        if(window.innerHeight < 650) {
+        if (window.innerHeight < 650) {
           tweetSwitch(false);
         } else {
           tweetSwitch(true);
@@ -140,7 +140,7 @@
   const btn = document.getElementById('btn_gabolga');
   const gabolga = () => {
     httpGet('/api/gabolga/<%= id %>', ({isGabolga}) => {
-      if(isGabolga) {
+      if (isGabolga) {
         gtag('event', '가볼가하기');
         btn.innerText = '가볼가 취소';
         btn.classList.add('btn-danger');
@@ -160,7 +160,7 @@
   const searchedItems = [];
 
   const putData = (i) => {
-    if(confirm(`'${searchedItems[i].name}'(으)로 등록하시겠습니까?`)) {
+    if (confirm(`'${searchedItems[i].name}'(으)로 등록하시겠습니까?`)) {
       gtag('event', '장소등록');
       
       const http = new XMLHttpRequest();

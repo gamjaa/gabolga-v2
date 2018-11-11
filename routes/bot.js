@@ -354,8 +354,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
                         },
                         {
                             type: 'web_url',
-                            label: '멘션 보내기',
-                            url: 'https://twitter.com/intent/tweet?text=@GABOLGA_bot%20'
+                            label: `가볼가 검색: ${text}`,
+                            url: `https://gabolga.gamjaa.com/search?q=${encodeURI(text)}`
                         },
                         {
                             type: 'web_url',

@@ -63,7 +63,7 @@
 
       <form action="/api/tweet" class="form-inline">
         <div class="input-group">
-          <input type="url" name="url" class="form-control" required placeholder="트윗 링크" aria-label="트윗 링크">
+          <input name="url" class="form-control" required minlength="2" placeholder="트윗 링크 / 검색어" aria-label="트윗 링크 / 검색어">
           <span class="input-group-btn">
             <button class="btn btn-outline-primary" type="submit" onclick="gtag('event', '트윗검색')">장소 찾기</button>
           </span>
