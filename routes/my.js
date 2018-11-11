@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
 // GET /my/map
 router.get('/map', wrapAsync(async (req, res, next) => {
     if (!req.session.isLogin) {
-        return res.redirect('/login?refer=/my/map');
+        return res.redirect(`/login?refer=${req.originalUrl}`);
     }
 
     const getTweetData = async () => {
@@ -45,7 +45,7 @@ router.get('/map', wrapAsync(async (req, res, next) => {
 // GET /my/list
 router.get('/list', wrapAsync(async (req, res, next) => {
     if (!req.session.isLogin) {
-        return res.redirect('/login?refer=/my/list');
+        return res.redirect(`/login?refer=${req.originalUrl}`);
     }
 
     const [rows] = await db.query(`SELECT my_map.tweet_id, name, road_address, address, phone, add_time 

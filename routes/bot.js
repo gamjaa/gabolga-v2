@@ -433,7 +433,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
     // Follow
     if (req.body.follow_events &&
         req.body.follow_events[0].source.id !== '903176813517479936') {
-        const userId = req.body.follow_events[0].source.id_str;
+        const userId = req.body.follow_events[0].source.id;
         const screenName = req.body.follow_events[0].source.screen_name;
         const name = req.body.follow_events[0].source.name;
 
