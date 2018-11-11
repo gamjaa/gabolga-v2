@@ -349,6 +349,11 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     ctas: [
                         {
                             type: 'web_url',
+                            label: '가볼가 사용법',
+                            url: 'https://gabolga.gamjaa.com/guide'
+                        },
+                        {
+                            type: 'web_url',
                             label: '멘션 보내기',
                             url: 'https://twitter.com/intent/tweet?text=@GABOLGA_bot%20'
                         },
