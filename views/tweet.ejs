@@ -69,7 +69,7 @@
           <h3><%= name %></h3>
           <% if (roadAddress) { %>
             <%= roadAddress %> <button class="btn btn-link btn-sm copy" data-clipboard-text="<%= roadAddress %>">복사</button><br>
-            (<%= address %>) <button class="btn btn-link btn-sm copy" data-clipboard-text="<%= address %>">복사</button><br>
+            <span class="text-muted">(<%= address %>)</span> <button class="btn btn-link btn-sm copy" data-clipboard-text="<%= address %>">복사</button><br>
           <% } else { %>
             <%= address %> <button class="btn btn-link btn-sm copy" data-clipboard-text="<%= address %>">복사</button><br>
           <% } %>
@@ -79,10 +79,8 @@
           <% } %>
   
           <% if (isGabolga) { %>
-            <br>
             <button id="btn_gabolga" class="btn btn-danger" onclick="gabolga()">가볼가 취소</button>
           <% } else if (req.session.isLogin) { %>
-            <br>
             <button id="btn_gabolga" class="btn btn-primary" onclick="gabolga()">가볼가 하기</button>
           <% } else { %>
             <div class="alert alert-primary center" role="alert" >

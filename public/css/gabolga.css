@@ -9,8 +9,10 @@ button {cursor: pointer;}
 #tweet {opacity: 0.9;}
 #tweet p {opacity: 1;}
 #data {width: 100%; overflow: auto; background-color: rgba(255, 255, 255, 0.85); border-radius: 5px; border: 1px solid #e1e8ed;}
-#gabolga {float: left; width: 100%; padding: 10px; }
-#gabolga h3 {width: calc(100% - 130px); word-break: keep-all;}
+#gabolga {float: left; width: 100%; padding: 0px 10px 0px 10px; }
+#gabolga h3 {width: calc(100% - 130px); line-height: 50px; word-break: keep-all;}
+#gabolga span {width: calc(100% - 50px);}
+#btn_gabolga {margin-top: 5px;}
 #tweet_switch {position: absolute; z-index: 3; line-height: 30px;}
 #route_link {position: absolute; right: 0; width: 130px; margin: 0; padding: 0;}
 #route_link a {padding-left: 10px; cursor: pointer;}
