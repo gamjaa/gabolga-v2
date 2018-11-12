@@ -39,7 +39,7 @@ router.get('/search', wrapAsync(async (req, res, next) => {
         return res.status(400).send('2글자 이상으로 검색해주세요');
     }
     
-    const q = `("${req.query.q}") (*${req.query.q.replace(/\s/g, '* *')}*)`;
+    const q = `(*${req.query.q.replace(/\s/g, '* *')}*) ("${req.query.q}")`;
     const query = req.session.isLogin 
         ? `SELECT tweet.tweet_id, name, address, road_address, phone, user_id, MATCH(name, address, road_address) AGAINST(? IN BOOLEAN MODE) as score
         FROM tweet
