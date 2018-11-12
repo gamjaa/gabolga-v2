@@ -6,7 +6,7 @@
     <br><br>
     <form action="/api/tweet" class="row justify-content-center">
         <div class="input-group col-8">
-        <input type="url" name="url" id="url" class="form-control" required placeholder="https://twitter.com/GABOLGA_bot/status/905073894515556352">
+        <input name="url" id="url" class="form-control" required minlength="2" placeholder="https://twitter.com/GABOLGA_bot/status/905073894515556352">
         <span class="input-group-btn">
             <button class="btn btn-primary" type="submit" onclick="if ($('#url').val() === '') $('#url').val('https://twitter.com/GABOLGA_bot/status/905073894515556352')">장소 찾기</button>
         </span>

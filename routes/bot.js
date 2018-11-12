@@ -344,6 +344,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
             const [user] = await db.query('SELECT search_tweet_id FROM users WHERE user_id=?', [senderId]);
 
             if (!user.length || !user[0].search_tweet_id) {
+                const searchBtnLabel = `가볼가 검색: ${text}`;
                 await sendDM(senderId, {
                     text: '궁금한 점이나 건의할 사항이 있으시다면 멘션이나 @_gamjaa로 DM 보내주세요! 감사합니다.',
                     ctas: [
@@ -354,7 +355,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                         },
                         {
                             type: 'web_url',
-                            label: `가볼가 검색: ${text}`,
+                            label: (searchBtnLabel.length > 36 ? `${searchBtnLabel.slice(0, 33)}...` : searchBtnLabel),
                             url: `https://gabolga.gamjaa.com/search?q=${encodeURI(text)}`
                         },
                         {
@@ -365,7 +366,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     ]
                 });
 
-                await telegramSend(`@${req.body.users[senderId].screen_name}`, text);
+                await telegramSend([`@${req.body.users[senderId].screen_name}`, text], true);
     
                 return res.status(200).send();
             }

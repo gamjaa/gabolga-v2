@@ -23,7 +23,7 @@ const excute = async () => {
     await T.post('statuses/update', {
         status
     }).catch(err => {
-        telegramSend('자동 트윗 에러', err.stack);
+        telegramSend(['자동 트윗 에러', err.stack]);
     });
 
     process.exit();

@@ -57,7 +57,7 @@ app.use(function(err, req, res, next) {
     if (err.name !== 'NotFoundError') {
         console.error(err.stack);
         if (process.env.NODE_ENV === 'production') {
-            telegramSend(`${req.method} ${req.originalUrl}`, req.body, err.stack)
+            telegramSend([`${req.method} ${req.originalUrl}`, req.body, err.stack])
         }
     }
 
