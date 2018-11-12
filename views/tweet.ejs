@@ -213,7 +213,7 @@
 
       if (total === 0) {
         const itemLi = document.createElement('li');
-        itemLi.innerHTML = '검색 결과가 없습니다.';
+        itemLi.innerHTML = `'${keyword}'에 대한 검색 결과가 없습니다.`;
         placesListUl.appendChild(itemLi);
         return;
       }
@@ -277,6 +277,7 @@
       return false;
     }
     
+    placesListUl.innerText = '검색 중...';
     placesListUl.scrollTop = 0;
     getSearchData(keyword, 1);
   };
