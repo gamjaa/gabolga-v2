@@ -168,6 +168,17 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         });
     });
             
+    await sendDM(req.session.user_id, {
+        text: `등록해주셔서 감사합니다. ${req.session.screen_name} 님의 지도에 '${req.body.name}'이(가) 기록되었습니다!`,
+        ctas: [
+            {
+                type: 'web_url',
+                label: '내 지도 보기',
+                url: `https://gabolga.gamjaa.com/my/map?tweet_id=${id}`
+            }
+        ]
+    }).catch(() => Promise.resolve());
+
     return res.status(200).send();
 }));
 

@@ -68,7 +68,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
         const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
         await sendDM(userId, {
-            text: `${req.body.favorite_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!`,
+            text: `${req.body.favorite_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 기록되었습니다. 확인해보세요!`,
             ctas: [
                 {
                     type: 'web_url',
@@ -107,7 +107,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
         const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
         await sendDM(userId, {
-            text: `${req.body.tweet_create_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!`,
+            text: `${req.body.tweet_create_events[0].user.name} 님의 지도에 '${rows[0].name}'이(가) 기록되었습니다. 확인해보세요!`,
             ctas: [
                 {
                     type: 'web_url',
@@ -225,7 +225,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 [tweetId, name, address, road_address, phone, mapy, mapx, senderId]);
                 
                 await sendDM(senderId, {
-                    text: `${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 등록되었습니다! 감사합니다.`,
+                    text: `등록해주셔서 감사합니다. ${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 기록되었습니다!`,
                     ctas: [
                         {
                             type: 'web_url',
@@ -407,7 +407,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
     
         if (rows.length) {
             await sendDM(senderId, {
-                text: `${req.body.users[senderId].name} 님의 지도에 '${rows[0].name}'이(가) 등록되었습니다. 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+                text: `${req.body.users[senderId].name} 님의 지도에 '${rows[0].name}'이(가) 기록되었습니다. 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
             });
         } else {
             await sendDM(senderId, {
