@@ -17,22 +17,21 @@ router.get('/map', wrapAsync(async (req, res, next) => {
     }
 
     const getTweetData = async () => {
-        if (!req.query.tweet_id) {
-            return {};
-        }
-
         const [tweets] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, mapx, mapy 
         FROM my_map
         JOIN tweet ON my_map.tweet_id=tweet.tweet_id
         WHERE user_id=? AND my_map.tweet_id=?`, [req.session.user_id, req.query.tweet_id]);
         if (!tweets.length) {
-            return {};
+            return null;
         }
 
         return tweets[0];
     };
 
-    const tweet = await getTweetData();
+    const tweet = req.query.tweet_id ? await getTweetData() : {};
+    if (!tweet) {
+        return res.redirect(`/tweet/${req.query.tweet_id}`);
+    }
 
     return res.render('map', { 
         req,
