@@ -220,7 +220,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
             const [users] = await db.query('SELECT oauth_token, oauth_token_secret, search_tweet_id, is_auto_tweet FROM users WHERE user_id=?', [senderId]);
             const tweetId = _.get(users, '[0].search_tweet_id');
             if (tweetId) {
-                await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, mapy, mapx, writer) 
+                await db.query(`INSERT IGNORE INTO tweet (tweet_id, name, address, road_address, phone, mapy, mapx, writer) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
                 [tweetId, name, address, road_address, phone, mapy, mapx, senderId]);
                 
@@ -382,8 +382,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
             });
             await sendDM(senderId, {
                 text: places.length 
-                    ? '검색된 장소들입니다. 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있습니다.'
-                    : '검색 결과가 없습니다. 다른 키워드로 다시 검색해주세요.',
+                    ? `'${text}'(으)로 검색된 장소들입니다. 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있습니다.`
+                    : `'${text}'에 대한 검색 결과가 없습니다. 다른 키워드로 다시 검색해주세요. 지역명(구, 동)을 빼고 장소명만으로도 검색해보세요!`,
                 quick_reply: {
                     type: 'options',
                     options: [
