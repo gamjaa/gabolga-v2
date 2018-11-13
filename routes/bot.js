@@ -449,7 +449,19 @@ router.post('/', wrapAsync(async (req, res, next) => {
         [userId, screenName, screenName]);
 
         await sendDM(userId, {
-            text: `반갑습니다, ${name} 님! 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${name} 님의 지도에 기록해드릴게요.`
+            text: `반갑습니다, ${name} 님! 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${name} 님의 지도에 기록해드릴게요.`,
+            ctas: [
+                {
+                    type: 'web_url',
+                    label: '가볼가 사용법',
+                    url: 'https://gabolga.gamjaa.com/guide'
+                },
+                {
+                    type: 'web_url',
+                    label: `${screenName} 님의 지도`,
+                    url: `https://gabolga.gamjaa.com/my/map`
+                }
+            ]
         });
         
         return res.status(200).send();

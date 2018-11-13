@@ -123,6 +123,11 @@ router.get('/callback', function(req, res, next) {
                                     ctas: [
                                         {
                                             type: 'web_url',
+                                            label: '가볼가 사용법',
+                                            url: 'https://gabolga.gamjaa.com/guide'
+                                        },
+                                        {
+                                            type: 'web_url',
                                             label: `${results.screen_name} 님의 지도`,
                                             url: 'https://gabolga.gamjaa.com/my/map'
                                         },
