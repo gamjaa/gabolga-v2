@@ -407,7 +407,14 @@ router.post('/', wrapAsync(async (req, res, next) => {
     
         if (rows.length) {
             await sendDM(senderId, {
-                text: `${req.body.users[senderId].name} 님의 지도에 '${rows[0].name}'이(가) 기록되었습니다. 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+                text: `${req.body.users[senderId].name} 님의 지도에 '${rows[0].name}'이(가) 기록되었습니다. 확인해보세요!`,
+                ctas: [
+                    {
+                        type: 'web_url',
+                        label: '내 지도 보기',
+                        url: `https://gabolga.gamjaa.com/my/map?tweet_id=${id}`
+                    }
+                ]
             });
         } else {
             await sendDM(senderId, {
