@@ -71,7 +71,7 @@ router.get('/setting', wrapAsync(async (req, res, next) => {
 
     return res.render('setting', { 
         req,
-        title: '내 지도(목록으로 보기)',
+        title: '설정',
 
         name: req.session.screen_name,
         hasRefer: req.query.refer,

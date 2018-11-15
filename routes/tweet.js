@@ -31,7 +31,8 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         FROM tweet 
         LEFT JOIN my_map ON (tweet.tweet_id=my_map.tweet_id AND my_map.user_id='${req.session.user_id}')
         WHERE tweet.tweet_id=?`;
-    const [rows] = await db.query(query, [id]);
+    const [tweets] = await db.query(query, [id]);
+    const [tweetUpdates] = await db.query('SELECT tweet_id FROM tweet_update WHERE tweet_id=?', [id]);
     const T = getNewTwit();
     const result = await T.get('statuses/oembed', {
         id, 
@@ -41,24 +42,25 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
     }).catch(() => Promise.resolve({ data: { html: '<div id="data" style="line-height: 100px; text-align: center;">삭제되거나 비공개된 트윗입니다</div>' } }));
     return res.render('tweet', { 
         req,
-        title: _.get(rows, '[0].name'),
-        isRegistered: rows.length,
+        title: _.get(tweets, '[0].name'),
+        isRegistered: tweets.length,
+        hasUpdate: tweetUpdates.length,
         
         tweetHtml: result.data.html,
         id, 
-        name: _.get(rows, '[0].name'),
-        address: _.get(rows, '[0].address'),
-        roadAddress: _.get(rows, '[0].road_address'),
-        phone: _.get(rows, '[0].phone'),
-        mapx: _.get(rows, '[0].mapx'),
-        mapy: _.get(rows, '[0].mapy'),
+        name: _.get(tweets, '[0].name'),
+        address: _.get(tweets, '[0].address'),
+        roadAddress: _.get(tweets, '[0].road_address'),
+        phone: _.get(tweets, '[0].phone'),
+        mapx: _.get(tweets, '[0].mapx'),
+        mapy: _.get(tweets, '[0].mapy'),
 
-        isGabolga: _.get(rows, '[0].user_id'),
+        isGabolga: _.get(tweets, '[0].user_id'),
     });
 }));
 
 // PUT /tweet/:id
-// 등록 및 수정 요청
+// 등록
 router.put('/:id', wrapAsync(async (req, res, next) => {
     if (!req.session.isLogin) {
         return res.status(400).send();
@@ -178,6 +180,63 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
             }
         ]
     }).catch(() => Promise.resolve());
+
+    return res.status(200).send();
+}));
+
+// GET /tweet/:id/update
+// 수정 요청 페이지
+router.get('/:id/update', wrapAsync(async (req, res, next) => {
+    if (!req.session.isLogin) {
+        return res.redirect(`/login?refer=${req.originalUrl}`);
+    }
+
+    if (!idRegex.test(req.params.id)) {
+        return res.status(400).send();
+    }
+    
+    const id = idRegex.exec(req.params.id)[1];
+    const T = getNewTwit();
+    const result = await T.get('statuses/oembed', {
+        id, 
+        hide_media: true, 
+        hide_thread: true, 
+        lang: 'ko'
+    }).catch(() => Promise.resolve({ data: { html: '<div id="data" style="line-height: 100px; text-align: center;">삭제되거나 비공개된 트윗입니다</div>' } }));
+
+    return res.render('tweet', { 
+        req,
+        title: '수정 요청',
+        isRegistered: 0,
+        isUpdatePage: 1,
+        
+        tweetHtml: result.data.html,
+        id, 
+        name: null,
+        address: null,
+        roadAddress: null,
+        phone: null,
+        mapx: null,
+        mapy: null,
+
+        isGabolga: null,
+    });
+}));
+
+// POST /tweet/:id/update
+// 수정 요청
+router.post('/:id/update', wrapAsync(async (req, res, next) => {
+    if (!req.session.isLogin) {
+        return res.redirect(`/login?refer=${req.originalUrl}`);
+    }
+
+    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.mapx && req.body.mapy)) {
+        return res.status(400).send();
+    }
+
+    await db.query(`INSERT IGNORE INTO tweet_update (tweet_id, name, address, road_address, phone, mapx, mapy, writer) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
+    [req.params.id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
 
     return res.status(200).send();
 }));

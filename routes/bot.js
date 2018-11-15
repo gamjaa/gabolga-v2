@@ -466,7 +466,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 {
                     type: 'web_url',
                     label: `${screenName} 님의 지도`,
-                    url: `https://gabolga.gamjaa.com/my/map`
+                    url: 'https://gabolga.gamjaa.com/my/map'
                 }
             ]
         });

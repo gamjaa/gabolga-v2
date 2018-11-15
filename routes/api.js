@@ -35,7 +35,7 @@ router.get('/tweet', function(req, res, next) {
     }
     
     if (!statusIdRegex.test(req.query.url)) {
-        return res.redirect(`/search?q=${req.query.url}`)
+        return res.redirect(`/search?q=${req.query.url}`);
     }
 
     return res.redirect(`/tweet/${statusIdRegex.exec(req.query.url)[1]}`);

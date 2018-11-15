@@ -45,6 +45,10 @@
             </div>
         </div>
     </form>
+
+    <% if (req.session.user_id === '62192325') { %>
+        <a href="/admin/tweet">트윗 수정 요청 목록</a>
+    <% } %>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.4/js/bootstrap-switch.min.js"></script>
 <script>

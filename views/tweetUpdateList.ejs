@@ -1,0 +1,68 @@
+<%- include('header') %>
+<div class="container">
+  <h3>
+    수정 요청 목록
+  </h3>
+  <table id="list" class="table table-hover">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>구이름</th>
+      <th>새이름</th>
+      <th>주소</th>
+      <th>전화번호</th>
+      <th>-</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (!rows.length) { %>
+        <tr>
+            <td colspan="6">수정 요청 없음</td>
+        </tr>
+    <% } else { 
+        rows.forEach((row, index) => { %>
+            <tr>
+                <th onclick="link('https://twitter.com/statuses/<%= row.tweet_id %>')" scope="row"><%= row.tweet_id %></th>
+                <td onclick="link('/tweet/<%= row.tweet_id %>')"><%= row.old_name %></td>
+                <td><%= row.name %></td>
+                <% if (row.road_address) { %>
+                    <td><%= row.road_address %><br>(<%= row.address %>)</td>
+                <% } else { %>
+                    <td><%= row.address %></td>
+                <% } %>
+                <td><%= row.phone || '-' %></td>
+                <td>
+                    <button id="<%= row.tweet_id %>" class="btn btn-primary list_btn" onclick="update('<%= row.tweet_id %>', true)">수정</button>
+                    <button id="<%= row.tweet_id %>" class="btn btn-danger list_btn" onclick="update('<%= row.tweet_id %>', false)">삭제</button>
+                </td>
+            </tr>
+        <% })
+    } %>
+  </tbody>
+</table>
+
+<script>
+    function httpReq(method, url) {
+        const http = new XMLHttpRequest();
+        http.open(method, url, true);
+        http.onreadystatechange = function () {
+        if (http.readyState === 4) {
+            location.reload();
+        }
+        };
+        http.send();
+    }
+    const update = (id, isUpdate) => {
+        const btn = document.getElementById(id);
+        if (isUpdate) {
+            httpReq('PUT', `/admin/tweet/${id}`);
+        } else {
+            httpReq('DELETE', `/admin/tweet/${id}`);
+        }
+    }
+    function link(url) {
+        window.open(url, '_blank');
+    }
+    </script>
+</div>
+<%- include('footer') %>

@@ -49,7 +49,7 @@ router.get('/search', wrapAsync(async (req, res, next) => {
         : `SELECT tweet_id, name, road_address, address, phone, MATCH(name, address, road_address) AGAINST(? IN BOOLEAN MODE) as score
         FROM tweet
         WHERE MATCH(name, address, road_address) AGAINST(? IN BOOLEAN MODE)
-        ORDER BY score DESC`
+        ORDER BY score DESC`;
     const [rows] = await db.query(query, [q, q]);
 
     return res.render('search', { 

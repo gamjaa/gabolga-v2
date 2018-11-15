@@ -13,6 +13,7 @@ const myRouter = require('./routes/my');
 const apiRouter = require('./routes/api');
 const newRouter = require('./routes/new');
 const webhookRouter = require('./routes/bot');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 app.enable('trust proxy');
@@ -42,6 +43,7 @@ app.use('/my', myRouter);
 app.use('/api', apiRouter);
 app.use('/new', newRouter);
 app.use('/webhook', webhookRouter);
+app.use('/admin', adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -57,7 +59,7 @@ app.use(function(err, req, res, next) {
     if (err.name !== 'NotFoundError') {
         console.error(err.stack);
         if (process.env.NODE_ENV === 'production') {
-            telegramSend([`${req.method} ${req.originalUrl}`, req.body, err.stack])
+            telegramSend([`${req.method} ${req.originalUrl}`, req.body, err.stack]);
         }
     }
 
