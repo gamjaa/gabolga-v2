@@ -117,7 +117,7 @@
 
                 markers.push(marker);
                 const index = markers.length - 1;
-                
+
                 naver.maps.Event.addListener(marker, "click", function(e) {
                     if (currentMarkerIndex === index) {
                         history.replaceState(null, null, originalUrl);
@@ -156,6 +156,9 @@
         });
     };
 
+    naver.maps.Event.addListener(map, 'dragstart', function(e) {
+        map.setCenter(map.getCenter());
+    });
     naver.maps.Event.addListener(map, 'idle', function(e) {
         drawMarkers();
     });
