@@ -44,6 +44,7 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         req,
         title: _.get(tweets, '[0].name'),
         isRegistered: tweets.length,
+        isUpdatePage: 0,
         hasUpdate: tweetUpdates.length,
         
         tweetHtml: result.data.html,
