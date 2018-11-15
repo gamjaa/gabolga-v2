@@ -211,7 +211,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
 
                 await sendDM(senderId, {
-                    text: '등록이 취소되었습니다. 나중에 웹으로도 등록하실 수 있습니다!'
+                    text: '등록이 취소되었습니다. 나중에 웹으로도 등록하실 수 있습니다!\n해당 트윗을 다시 보내시면 등록 과정을 재시작할 수 있습니다.'
                 });
 
                 return res.status(200).send();
@@ -344,9 +344,10 @@ router.post('/', wrapAsync(async (req, res, next) => {
             const [user] = await db.query('SELECT search_tweet_id FROM users WHERE user_id=?', [senderId]);
 
             if (!user.length || !user[0].search_tweet_id) {
-                const searchBtnLabel = `가볼가 검색: ${text}`;
+                const q = text.replace(/[~!*()]/g, '');
+                const searchBtnLabel = `가볼가 검색: ${q}`;
                 await sendDM(senderId, {
-                    text: '궁금한 점이나 건의할 사항이 있으시다면 멘션이나 @_gamjaa로 DM 보내주세요! 감사합니다.',
+                    text: `문의 및 건의사항은 멘션이나 DM(@_gamjaa)으로 보내주세요.\n사용법이 궁금하시거나, 가볼가에서 '${q}'(으)로 검색하시려면 아래 버튼을 눌러주세요! 감사합니다.`,
                     ctas: [
                         {
                             type: 'web_url',
@@ -356,7 +357,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                         {
                             type: 'web_url',
                             label: (searchBtnLabel.length > 36 ? `${searchBtnLabel.slice(0, 33)}...` : searchBtnLabel),
-                            url: `https://gabolga.gamjaa.com/search?q=${encodeURI(text)}`
+                            url: `https://gabolga.gamjaa.com/search?q=${encodeURIComponent(q)}`
                         },
                         {
                             type: 'web_url',
@@ -382,7 +383,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
             });
             await sendDM(senderId, {
                 text: places.length 
-                    ? `'${text}'(으)로 검색된 장소들입니다. 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있습니다.`
+                    ? `'${text}'(으)로 검색된 장소들입니다. 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있습니다.\n장소 목록이 안 보인다면, 화면 하단의 ☰ 버튼을 눌러주세요.`
                     : `'${text}'에 대한 검색 결과가 없습니다. 다른 키워드로 다시 검색해주세요. 지역명(구, 동)을 빼고 장소명만으로도 검색해보세요!`,
                 quick_reply: {
                     type: 'options',
@@ -418,7 +419,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
             });
         } else {
             await sendDM(senderId, {
-                text: `아직 가볼가에 등록되지 않은 트윗이에요. ${req.body.users[senderId].name} 님께서 직접 등록해보는 건 어떨까요? DM으로 바로 등록할 수도 있습니다.`,
+                text: `아직 가볼가에 등록되지 않은 트윗이에요. ${req.body.users[senderId].name} 님께서 직접 등록해보는 건 어떨까요?\n화면 하단의 'DM으로 바로 등록하기'를 눌러 DM으로 등록할 수도 있습니다. 버튼이 안 보인다면, ☰ 버튼을 눌러주세요.`,
                 ctas: [
                     {
                         type: 'web_url',
