@@ -24,7 +24,7 @@
             <tr>
                 <th onclick="link('https://twitter.com/statuses/<%= row.tweet_id %>')" scope="row"><%= row.tweet_id %></th>
                 <td onclick="link('/tweet/<%= row.tweet_id %>')"><%= row.old_name %></td>
-                <td><%= row.name %></td>
+                <td onclick="link('/tweet/<%= row.tweet_id %>/update')"><%= row.name %></td>
                 <% if (row.road_address) { %>
                     <td><%= row.road_address %><br>(<%= row.address %>)</td>
                 <% } else { %>

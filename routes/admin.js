@@ -36,7 +36,7 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
         return res.status(403).send();
     }
 
-    const id = req.query.id;
+    const id = req.params.id;
     const [rows] = await db.query('SELECT * FROM tweet_update WHERE tweet_id=?', [id]);
     const row = rows[0];
     await db.query('UPDATE tweet SET name=?, address=?, road_address=?, phone=?, mapx=?, mapy=?, writer=?, write_time=? WHERE tweet_id=?',
@@ -63,7 +63,8 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
         return retweet_count >= 1000 
             || (durationDays <= 3 && retweet_count >= 20) || (durationDays <= 7 && retweet_count >= 100);
     };
-    if (isSendMention(data)) {
+
+    const deleteOldTweets = async () => {
         const {data} = await postT.get('search/tweets', {
             q: `from:gabolga_bot https://gabolga.gamjaa.com/tweet/${id}`,
             count: 100
@@ -73,6 +74,11 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
                 id: status.id_str
             });
         });
+    };
+
+    const timestamp = +new Date();
+    if (isSendMention(data)) {
+        await deleteOldTweets();
 
         const setMentionPermission = async (userId, isDenied) => {
             await db.query(`INSERT INTO mention_permission (user_id, is_denied) 
@@ -81,7 +87,7 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
         };
 
         await postT.post('statuses/update', {
-            status: `@${data.user.screen_name} ${row.name}\n${row.road_address || row.address}\n#가볼가 에서 나만의 지도에 '${row.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+            status: `@${data.user.screen_name} ${row.name}\n${row.road_address || row.address}\n#가볼가 에서 나만의 지도에 '${row.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}#${timestamp}`,
             in_reply_to_status_id: id
         }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
     }
@@ -90,14 +96,14 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     if (users[0].is_auto_tweet) {
         const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
         await T.post('statuses/update', {
-            status: `#가볼가 에 '${row.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+            status: `#가볼가 에 '${row.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}#${timestamp}`
         });
     }
 
     const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [id, row.writer]);
     alreadyGabolgas.forEach(async gabolga => {
         await sendDM(gabolga.user_id, {
-            text: `가볼가 해두셨던 트윗의 장소 정보가 수정됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+            text: `가볼가 해두셨던 트윗의 장소 정보가 수정됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}#${timestamp}`,
             ctas: [
                 {
                     type: 'web_url',
@@ -109,7 +115,7 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     });
             
     await sendDM(row.writer, {
-        text: `https://twitter.com/statuses/${id}\n위 트윗의 장소 수정 요청이 반영되었습니다! 감사합니다. 내 지도에서 지금 확인해보세요!`,
+        text: `감사합니다! 수정해주신 장소 정보가 반영되었습니다! 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}#${timestamp}`,
         ctas: [
             {
                 type: 'web_url',
@@ -118,6 +124,8 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
             }
         ]
     }).catch(() => Promise.resolve());
+
+    await db.query('DELETE FROM tweet_update WHERE tweet_id=?', [req.params.id]);
 
     return res.status(200).send();
 }));

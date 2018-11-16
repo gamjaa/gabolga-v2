@@ -9,6 +9,7 @@ const config = require('config');
 const appT = require('./common/twit')();
 const postBotConfig = config.get('bot.post');
 const postT = new require('twit')(postBotConfig);
+const telegramSend = require('./telegram');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -43,8 +44,8 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
     return res.render('tweet', { 
         req,
         title: _.get(tweets, '[0].name'),
-        isRegistered: tweets.length,
         isUpdatePage: 0,
+        isRegistered: tweets.length,
         hasUpdate: tweetUpdates.length,
         
         tweetHtml: result.data.html,
@@ -197,6 +198,10 @@ router.get('/:id/update', wrapAsync(async (req, res, next) => {
     }
     
     const id = idRegex.exec(req.params.id)[1];
+    const [tweets] = await db.query(`SELECT name, address, road_address, phone, mapx, mapy, user_id 
+    FROM tweet_update 
+    LEFT JOIN my_map ON (tweet_update.tweet_id=my_map.tweet_id AND my_map.user_id=?)
+    WHERE tweet_update.tweet_id=?`, [req.session.user_id, id]);
     const T = getNewTwit();
     const result = await T.get('statuses/oembed', {
         id, 
@@ -208,19 +213,20 @@ router.get('/:id/update', wrapAsync(async (req, res, next) => {
     return res.render('tweet', { 
         req,
         title: '수정 요청',
-        isRegistered: 0,
         isUpdatePage: 1,
+        isRegistered: tweets.length,
+        hasUpdate: 1,
         
         tweetHtml: result.data.html,
         id, 
-        name: null,
-        address: null,
-        roadAddress: null,
-        phone: null,
-        mapx: null,
-        mapy: null,
+        name: _.get(tweets, '[0].name'),
+        address: _.get(tweets, '[0].address'),
+        roadAddress: _.get(tweets, '[0].road_address'),
+        phone: _.get(tweets, '[0].phone'),
+        mapx: _.get(tweets, '[0].mapx'),
+        mapy: _.get(tweets, '[0].mapy'),
 
-        isGabolga: null,
+        isGabolga: _.get(tweets, '[0].user_id'),
     });
 }));
 
@@ -238,6 +244,8 @@ router.post('/:id/update', wrapAsync(async (req, res, next) => {
     await db.query(`INSERT IGNORE INTO tweet_update (tweet_id, name, address, road_address, phone, mapx, mapy, writer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
     [req.params.id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
+
+    await telegramSend(['수정 요청', req.body, 'https://gabolga.gamjaa.com/admin/tweet']);
 
     return res.status(200).send();
 }));
