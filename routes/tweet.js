@@ -26,11 +26,11 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
     
     const id = idRegex.exec(req.params.id)[1];
     const query = !req.session.isLogin 
-        ? `SELECT name, address, road_address, phone, mapx, mapy 
+        ? `SELECT name, address, road_address, phone, lat, lng 
         FROM tweet WHERE tweet.tweet_id=?`
-        : `SELECT name, address, road_address, phone, mapx, mapy, user_id 
+        : `SELECT name, address, road_address, phone, lat, lng, user_id 
         FROM tweet 
-        LEFT JOIN my_map ON (tweet.tweet_id=my_map.tweet_id AND my_map.user_id='${req.session.user_id}')
+        LEFT JOIN (SELECT * FROM my_map WHERE user_id='${req.session.user_id}') AS my_map ON tweet.tweet_id=my_map.tweet_id
         WHERE tweet.tweet_id=?`;
     const [tweets] = await db.query(query, [id]);
     const [tweetUpdates] = await db.query('SELECT tweet_id FROM tweet_update WHERE tweet_id=?', [id]);
@@ -54,8 +54,8 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         address: _.get(tweets, '[0].address'),
         roadAddress: _.get(tweets, '[0].road_address'),
         phone: _.get(tweets, '[0].phone'),
-        mapx: _.get(tweets, '[0].mapx'),
-        mapy: _.get(tweets, '[0].mapy'),
+        lat: _.get(tweets, '[0].lat'),
+        lng: _.get(tweets, '[0].lng'),
 
         isGabolga: _.get(tweets, '[0].user_id'),
     });
@@ -68,7 +68,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.mapx && req.body.mapy)) {
+    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.lat && req.body.lng)) {
         return res.status(400).send();
     }
 
@@ -86,9 +86,9 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, mapx, mapy, writer) 
+    await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-    [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
+    [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.lat, req.body.lng, req.session.user_id]);
 
     const {data} = await appT.get('statuses/show', {
         id
@@ -198,7 +198,7 @@ router.get('/:id/update', wrapAsync(async (req, res, next) => {
     }
     
     const id = idRegex.exec(req.params.id)[1];
-    const [tweets] = await db.query(`SELECT name, address, road_address, phone, mapx, mapy, user_id 
+    const [tweets] = await db.query(`SELECT name, address, road_address, phone, lat, lng, user_id 
     FROM tweet_update 
     LEFT JOIN my_map ON (tweet_update.tweet_id=my_map.tweet_id AND my_map.user_id=?)
     WHERE tweet_update.tweet_id=?`, [req.session.user_id, id]);
@@ -223,8 +223,8 @@ router.get('/:id/update', wrapAsync(async (req, res, next) => {
         address: _.get(tweets, '[0].address'),
         roadAddress: _.get(tweets, '[0].road_address'),
         phone: _.get(tweets, '[0].phone'),
-        mapx: _.get(tweets, '[0].mapx'),
-        mapy: _.get(tweets, '[0].mapy'),
+        lat: _.get(tweets, '[0].lat'),
+        lng: _.get(tweets, '[0].lng'),
 
         isGabolga: _.get(tweets, '[0].user_id'),
     });
@@ -237,13 +237,13 @@ router.post('/:id/update', wrapAsync(async (req, res, next) => {
         return res.redirect(`/login?refer=${req.originalUrl}`);
     }
 
-    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.mapx && req.body.mapy)) {
+    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.lat && req.body.lng)) {
         return res.status(400).send();
     }
 
-    await db.query(`INSERT IGNORE INTO tweet_update (tweet_id, name, address, road_address, phone, mapx, mapy, writer) 
+    await db.query(`INSERT IGNORE INTO tweet_update (tweet_id, name, address, road_address, phone, lat, lng, writer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-    [req.params.id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
+    [req.params.id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.lat, req.body.lng, req.session.user_id]);
 
     await telegramSend(['수정 요청', req.body, 'https://gabolga.gamjaa.com/admin/tweet']);
 

@@ -21,7 +21,7 @@
         <span id="tweet_phone"></span> <button id="tweet_phone_btn" class="btn btn-link btn-sm copy">복사</button>
     </div>
 </div>
-<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=OkoqrDNq7sZ8zfy4x5To&submodules=geocoder"></script>
+<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=uwuqnx1j3m&submodules=geocoder"></script>
 <script>
     const mapDiv = document.getElementById('map');
     const tweetDataDiv = document.getElementById('tweet_data');
@@ -51,7 +51,7 @@
     let currentMarkerIndex = -1;
 
     <% if (tweet.name) { %>
-        const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= tweet.mapx %>, <%= tweet.mapy %>));
+        const position = new naver.maps.LatLng(<%= tweet.lat %>, <%= tweet.lng %>);
         const marker = new naver.maps.Marker({
             position,
             map,
@@ -99,11 +99,11 @@
 
     const drawMarkers = () => {
         const bounds = map.getBounds();
-        const min = naver.maps.TransCoord.fromLatLngToTM128(bounds.getMin());
-        const max = naver.maps.TransCoord.fromLatLngToTM128(bounds.getMax());
-        httpGet(`/api/map?minX=${min.x}&maxX=${max.x}&minY=${min.y}&maxY=${max.y}`, (rows) => {
+        const min = bounds.getMin();
+        const max = bounds.getMax();
+        httpGet(`/api/map?minLat=${min.y}&maxLat=${max.y}&minLng=${min.x}&maxLng=${max.x}`, (rows) => {
             rows.forEach(row => {
-                const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(row.mapx, row.mapy));
+                const position = new naver.maps.LatLng(row.lat, row.lng);
                 
                 if (isAlreadyExistMarker(row.name, position)) {
                     return;

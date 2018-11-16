@@ -39,8 +39,8 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     const id = req.params.id;
     const [rows] = await db.query('SELECT * FROM tweet_update WHERE tweet_id=?', [id]);
     const row = rows[0];
-    await db.query('UPDATE tweet SET name=?, address=?, road_address=?, phone=?, mapx=?, mapy=?, writer=?, write_time=? WHERE tweet_id=?',
-        [row.name, row.address, row.road_address, row.phone, row.mapx, row.mapy, row.writer, row.write_time, id]);
+    await db.query('UPDATE tweet SET name=?, address=?, road_address=?, phone=?, lat=?, lng=?, writer=?, write_time=? WHERE tweet_id=?',
+        [row.name, row.address, row.road_address, row.phone, row.lat, row.lng, row.writer, row.write_time, id]);
 
     const {data} = await appT.get('statuses/show', {
         id

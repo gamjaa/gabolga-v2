@@ -1,6 +1,6 @@
 <%- include('header'); -%>
 <script src="/js/clipboard.min.js"></script>
-<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=OkoqrDNq7sZ8zfy4x5To&submodules=geocoder"></script>
+<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=uwuqnx1j3m&submodules=geocoder"></script>
 <div id="map">
     <div id="map_pop">
       <script>let isShowTweet = true;</script>
@@ -52,7 +52,7 @@
           <% if (name) { %>
             <div id="route_link">
               <script>
-                const point = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= mapx %>, <%= mapy %>));
+                const point = new naver.maps.LatLng(<%= lat %>, <%= lng %>);
                 const openRoute = (app) => {
                   if (app === 'kakao') {
                     return window.open(`http://map.daum.net/link/to/<%= name %>,${point.lat()},${point.lng()}`, '_blank');
@@ -182,8 +182,8 @@
         phone: searchedItems[i].phone,
         address: searchedItems[i].address,
         road_address: searchedItems[i].road_address,
-        mapx: searchedItems[i].mapx,
-        mapy: searchedItems[i].mapy,
+        lat: searchedItems[i].lat,
+        lng: searchedItems[i].lng,
       }));
     }
   };
@@ -210,8 +210,8 @@
     infowindows[index].close();
   };
 
-  const getSearchData = (keyword, start) => {
-    httpGet(`/api/searchLocal?query=${encodeURI(keyword)}&start=${start}`, ({total, start, display, items}) => {
+  const getSearchData = (keyword) => {
+    httpGet(`/api/searchLocal?query=${encodeURIComponent(keyword)}`, ({total, items}) => {
       markers.forEach(marker => marker.setMap(null));
       markers.length = 0;
       infowindows.length = 0;
@@ -232,7 +232,7 @@
         searchedItems.push(item);
         
         // 마커 표시
-        const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(item.mapx, item.mapy));
+        const position = new naver.maps.LatLng(item.lat, item.lng);
         bounds.push(position);
         const marker = new naver.maps.Marker({
           position,
@@ -287,7 +287,7 @@
     
     placesListUl.innerText = '검색 중...';
     placesListUl.scrollTop = 0;
-    getSearchData(keyword, 1);
+    getSearchData(keyword);
   };
 
   // 검색결과 항목을 Element로 반환하는 함수입니다

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const config = require('config');
-const naver = config.get('naver');
+const ncloud = config.get('ncloud');
 const request = require('request-promise-native');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
@@ -16,15 +16,15 @@ router.get('/map', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    if (!(req.query.minX && req.query.maxX && req.query.minY && req.query.maxY)) {
+    if (!(req.query.minLat && req.query.maxLat && req.query.minLng && req.query.maxLng)) {
         return res.status(400).send();
     }
 
-    const [rows] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, mapx, mapy 
-        FROM my_map
+    const [rows] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, lat, lng 
+        FROM (SELECT * FROM my_map WHERE user_id=?) AS my_map
         JOIN tweet ON my_map.tweet_id=tweet.tweet_id
-        WHERE user_id=? AND mapx BETWEEN ? AND ? AND mapy BETWEEN ? AND ?`,
-    [req.session.user_id, req.query.minX, req.query.maxX, req.query.minY, req.query.maxY]);
+        WHERE lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?`,
+    [req.session.user_id, req.query.minLat, req.query.maxLat, req.query.minLng, req.query.maxLng]);
     return res.json(rows);
 }));
 
@@ -64,26 +64,26 @@ router.get('/gabolga/:id', wrapAsync(async (req, res, next) => {
 
 // GET /api/thumb
 router.get('/thumb', wrapAsync(async (req, res, next) => {
-    return request.get('https://openapi.naver.com/v1/map/staticmap.bin', {
+    return request.get('https://naveropenapi.apigw.ntruss.com/map-static/v2/raster', {
+        headers: {
+            'X-NCP-APIGW-API-KEY-ID': ncloud.id,
+            'X-NCP-APIGW-API-KEY': ncloud.secret
+        },
         qs: {
-            clientId: naver.id,
-            url: 'https://gabolga.gamjaa.com',
-            scale: 1,
-            crs: 'NHN:128',
-            exception: 'json',
-            center: `${req.query.mapx},${req.query.mapy}`,
+            center: `${req.query.lng},${req.query.lat}`,
             level: 12,
             w: 505,
             h: 253,
-            baselayer: 'default',
-            markers: `${req.query.mapx},${req.query.mapy}`
+            scale: 1,
+            markers: `pos:${req.query.lng} ${req.query.lat}`,
+            ClientID: ncloud.id
         }
     }).pipe(res);
 }));
 
 // GET /api/searchLocal
 router.get('/searchLocal', wrapAsync(async (req, res, next) => {
-    return res.json(await localSearch(req.query.query, req.query.start));
+    return res.json(await localSearch(req.query.query));
 }));
 
 module.exports = router;

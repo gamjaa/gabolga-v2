@@ -206,7 +206,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 return res.status(200).send();
             }
 
-            const {name, address, road_address, phone, mapx, mapy, isClose} = JSON.parse(quickReply);
+            const {name, address, road_address, phone, lat, lng, isClose} = JSON.parse(quickReply);
             if (isClose) {
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
 
@@ -220,9 +220,9 @@ router.post('/', wrapAsync(async (req, res, next) => {
             const [users] = await db.query('SELECT oauth_token, oauth_token_secret, search_tweet_id, is_auto_tweet FROM users WHERE user_id=?', [senderId]);
             const tweetId = _.get(users, '[0].search_tweet_id');
             if (tweetId) {
-                await db.query(`INSERT IGNORE INTO tweet (tweet_id, name, address, road_address, phone, mapy, mapx, writer) 
+                await db.query(`INSERT IGNORE INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-                [tweetId, name, address, road_address, phone, mapy, mapx, senderId]);
+                [tweetId, name, address, road_address, phone, lat, lng, senderId]);
                 
                 await sendDM(senderId, {
                     text: `등록해주셔서 감사합니다. ${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 기록되었습니다!`,
@@ -374,11 +374,11 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
             const {items} = await localSearch(text);
             const places = items.map(item => {
-                const {name, address, road_address, phone, mapx, mapy} = item;
+                const {name, address, road_address, phone, lat, lng} = item;
                 return {
                     label: name,
                     description: `${address || road_address} / ${phone}`,
-                    metadata: JSON.stringify({name, address, road_address, phone, mapx, mapy})
+                    metadata: JSON.stringify({name, address, road_address, phone, lat, lng})
                 };
             });
             await sendDM(senderId, {
