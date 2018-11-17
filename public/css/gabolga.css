@@ -18,11 +18,11 @@ button {cursor: pointer;}
 #route_link {position: absolute; right: 0; width: 130px; margin: 0; padding: 0;}
 #route_link a {padding-left: 10px; cursor: pointer;}
 #route_link img {width: 50px; height: 50px;}
-#unreg_tweets_count {position: absolute; max-width: 350px; margin: auto; top: 10px; left: 0; right: 0; z-index: 2;}
 #now_pos {position: absolute; top: 10px; left: 10px; width: 50px; height: 50px; z-index: 2;}
 #tweet_data {display: none; position: fixed; margin: auto; left: 0; right: 0; bottom: 20px; width: 500px; max-width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.9); border-radius: 5px; border: 1px solid #e1e8ed; z-index: 2;}
 #tweet_data h3 {width: calc(100% - 130px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 50px;}
 #tweet_data span {width: calc(100% - 50px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+#unreg_tweets_count {position: fixed; margin: auto; left: 0; right: 0; bottom: 20px; width: 350px; max-width: 100%; z-index: 2;}
 #list tr {cursor: pointer;}
 .card img {min-width: 270px; width: 100%; height: auto;}
 @media screen and (max-width: 800px) {

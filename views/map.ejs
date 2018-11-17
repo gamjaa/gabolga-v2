@@ -66,14 +66,6 @@
         map.setCenter(position);
         markers.push(marker);
         const click = () => {
-            if (currentMarkerIndex === 0) {
-                history.replaceState(null, null, originalUrl);
-                tweetDataDiv.style.display = 'none';
-                marker.setIcon();
-                currentMarkerIndex = -1;
-                return;
-            }
-
             history.replaceState(null, null, `${originalUrl}?tweet_id=<%= req.query.tweet_id %>`);
             if (currentMarkerIndex >= 0) {
                 markers[currentMarkerIndex].setIcon();
@@ -125,14 +117,6 @@
                 const index = markers.length - 1;
 
                 naver.maps.Event.addListener(marker, "click", function(e) {
-                    if (currentMarkerIndex === index) {
-                        history.replaceState(null, null, originalUrl);
-                        tweetDataDiv.style.display = 'none';
-                        marker.setIcon();
-                        currentMarkerIndex = -1;
-                        return;
-                    }
-
                     history.replaceState(null, null, `${originalUrl}?tweet_id=${row.tweet_id}`);
                     if (currentMarkerIndex >= 0) {
                         markers[currentMarkerIndex].setIcon();
@@ -164,6 +148,14 @@
 
     naver.maps.Event.addListener(map, 'dragstart', function(e) {
         map.setCenter(map.getCenter());
+    });
+    naver.maps.Event.addListener(map, 'click', function(e) {
+        history.replaceState(null, null, originalUrl);
+        tweetDataDiv.style.display = 'none';
+        if (currentMarkerIndex >= 0) {
+            markers[currentMarkerIndex].setIcon();
+            currentMarkerIndex = -1;
+        }
     });
     naver.maps.Event.addListener(map, 'idle', function(e) {
         drawMarkers();
