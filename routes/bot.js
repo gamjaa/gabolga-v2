@@ -190,7 +190,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 [senderId, quickReply, quickReply]);
 
                 await sendDM(senderId, {
-                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요!\n예시) 성심당 / 중앙로역 성심당 / 은행동 성심당`,
+                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! 장소명은 띄어쓰기 없이 붙여주세요.\n예시) 성심당 / 중앙로역 성심당 / 은행동 성심당`,
                     quick_reply: {
                         type: 'options',
                         options: [
@@ -344,10 +344,10 @@ router.post('/', wrapAsync(async (req, res, next) => {
             const [user] = await db.query('SELECT search_tweet_id FROM users WHERE user_id=?', [senderId]);
 
             if (!user.length || !user[0].search_tweet_id) {
-                const q = text.replace(/[~!*()]/g, '');
+                const q = text.replace(/[.~!*()'"]/g, '');
                 const searchBtnLabel = `가볼가 검색: ${q}`;
                 await sendDM(senderId, {
-                    text: `문의 및 건의사항은 멘션이나 DM(@_gamjaa)으로 보내주세요.\n사용법이 궁금하시거나, 가볼가에서 '${q}'(으)로 검색하시려면 아래 버튼을 눌러주세요! 감사합니다.`,
+                    text: `문의 및 건의사항은 멘션이나 @_gamjaa(DM)로 보내주세요.\n사용법이 궁금하시거나, 가볼가에서 '${q}'(으)로 검색하시려면 아래 버튼을 눌러주세요! 감사합니다.`,
                     ctas: [
                         {
                             type: 'web_url',
@@ -424,7 +424,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     {
                         type: 'web_url',
                         label: '사이트에서 등록하기',
-                        url: `https://gabolga.gamjaa.com/tweet/${id}?unregistered`
+                        url: `https://gabolga.gamjaa.com/tweet/${id}`
                     },
                 ],
                 quick_reply: {
