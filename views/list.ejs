@@ -8,11 +8,25 @@
   <thead>
     <tr>
       <th>#</th>
-      <th>이름</th>
-      <th class="mobile">주소</th>
-      <th class="mobile">전화번호</th>
-      <th class="mobile">추가일</th>
+      <th onclick="order('name')">이름</th>
+      <th class="mobile" onclick="order('address')">주소</th>
+      <th class="mobile" onclick="order('phone')">전화번호</th>
+      <th class="mobile" onclick="order('add_time')">추가일</th>
       <th>-</th>
+      <script>
+        const orderBy = '<%= req.query.order_by || 'address' %>';
+        const orderType = '<%= req.query.order_type || 'asc' %>';
+
+        const order = newOrderBy => {
+            if (orderBy === newOrderBy) {
+                const newOrderType = orderType === 'asc' ? 'desc' : 'asc';
+                location.href = `/my/list?order_by=${orderBy}&order_type=${newOrderType}`;
+                return;
+            }
+
+            location.href = `/my/list?order_by=${newOrderBy}&order_type=asc`;
+        };
+      </script>
     </tr>
   </thead>
   <tbody>
@@ -31,7 +45,10 @@
                 <% } else { %>
                     <td onclick="link('<%= row.tweet_id %>')"><%= row.name %></td>
                     <% if (row.road_address) { %>
-                        <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.road_address %><br>(<%= row.address %>)</td>
+                        <td class="mobile" onclick="link('<%= row.tweet_id %>')">
+                            <%= row.road_address %><br>
+                            <span class="text-muted">(<%= row.address %>)</span>
+                        </td>
                     <% } else { %>
                         <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.address %></td>
                     <% } %>

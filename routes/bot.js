@@ -14,7 +14,7 @@ const db = require('./common/db');
 const localSearch = require('./common/localSearch');
 const getNewTwit = require('./common/twit');
 const appT = getNewTwit();
-const telegramSend = require('./telegram');
+const telegramSend = require('./common/telegram');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const gabolgaRegex = /gabolga.gamjaa.com\/tweet\/([0-9]+)/;
@@ -190,7 +190,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 [senderId, quickReply, quickReply]);
 
                 await sendDM(senderId, {
-                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! ex) 대전 은행동 성심당`,
+                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요!\n예시) 성심당 / 중앙로역 성심당 / 은행동 성심당`,
                     quick_reply: {
                         type: 'options',
                         options: [

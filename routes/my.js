@@ -47,9 +47,27 @@ router.get('/list', wrapAsync(async (req, res, next) => {
         return res.redirect(`/login?refer=${req.originalUrl}`);
     }
 
+    const getOrderBy = () => {
+        if (req.query.order_by === 'phone') {
+            return 'phone IS NOT NULL, NULLIF(phone, \'\') IS NULL, phone';
+        }
+
+        if (['name', 'add_time'].includes(req.query.order_by)) {
+            return `${req.query.order_by} IS NOT NULL, ${req.query.order_by}`;
+        }
+
+        return 'COALESCE(NULLIF(road_address,\'\'), address) IS NOT NULL, COALESCE(NULLIF(road_address,\'\'), address)';
+    };
+
+    const getOrderType = () => {
+        return req.query.order_type === 'desc' ? 'DESC' : 'ASC';
+    };
+
+    const orderBy = getOrderBy();
+    const orderType = getOrderType();
     const [rows] = await db.query(`SELECT my_map.tweet_id, name, road_address, address, phone, add_time 
         FROM my_map 
-        LEFT JOIN tweet ON my_map.tweet_id=tweet.tweet_id WHERE user_id=? ORDER BY tweet.road_address DESC`,
+        LEFT JOIN tweet ON my_map.tweet_id=tweet.tweet_id WHERE user_id=? ORDER BY ${orderBy} ${orderType}`,
     [req.session.user_id]);
 
     return res.render('list', { 

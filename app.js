@@ -5,7 +5,7 @@ const session = require('express-session');
 const mysqlStore = require('express-mysql-session')(session);
 const logger = require('morgan');
 const config = require('config');
-const telegramSend = require('./routes/telegram');
+const telegramSend = require('./routes/common/telegram');
 
 const indexRouter = require('./routes/index');
 const tweetRouter = require('./routes/tweet');

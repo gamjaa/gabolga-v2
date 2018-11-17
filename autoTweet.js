@@ -4,7 +4,7 @@ const botConfig = require('config').get('bot.dm');
 const T = new twit(botConfig);
 const moment = require('moment')();
 const db = require('./routes/common/db');
-const telegramSend = require('./routes/telegram');
+const telegramSend = require('./routes/common/telegram');
 
 const excute = async () => {
     const [rows] = await db.query('SELECT tweet_id, name, road_address, address FROM tweet');

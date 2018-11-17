@@ -9,7 +9,7 @@ const config = require('config');
 const appT = require('./common/twit')();
 const postBotConfig = config.get('bot.post');
 const postT = new require('twit')(postBotConfig);
-const telegramSend = require('./telegram');
+const telegramSend = require('./common/telegram');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
