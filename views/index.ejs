@@ -1,9 +1,9 @@
 <%- include('header') %>
 <div class="container center">
-    <img src="/img/gabolga.png" width="300" height="auto">
+    <img src="/img/gabolga.png" style="width: 300px; max-width: 50%; height: auto;">
     <h3 class="center">가볼까 싶은 트위터 맛집,</h3>
-    <h3 class="center">'가볼가'가 지도로 정리해드립니다!</h3>
-    <br><br>
+    <h3 class="center">지도로 정리해드립니다!</h3>
+    <br>
     <form action="/api/tweet" class="row justify-content-center">
         <div class="input-group col-8">
         <input name="url" id="url" class="form-control" required minlength="2" placeholder="https://twitter.com/GABOLGA_bot/status/905073894515556352">
@@ -12,5 +12,23 @@
         </span>
         </div>
     </form>
+    <br>
+    <table id="gabolga_rank" class="table table-hover mx-auto">
+    <caption>최근 24시간 가볼가 순위</caption>
+    <thead>
+        <tr>
+        <th scope="col">순위</th>
+        <th scope="col">장소명</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% rows.forEach((row, index) => { %>
+            <tr style="cursor: pointer" onclick="window.open('/tweet/<%= row.tweet_id %>', '_blank')">
+                <th scope="row"><%= index + 1 %></th>
+                <td><%= row.name %></td>
+            </tr>
+        <% }) %>
+    </tbody>
+    </table>
 </div>
 <%- include('footer') %>

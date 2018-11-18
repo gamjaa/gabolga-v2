@@ -11,12 +11,16 @@ const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 
 // GET /
-router.get('/', function(req, res, next) {
+router.get('/', wrapAsync(async (req, res, next) => {
+    const [rows] = await db.query('SELECT * FROM tweet_rank_24h');
+
     return res.render('index', { 
         req,
-        title: '트위터 맛집, 지도로 정리해드립니다!'
+        title: '트위터 맛집, 지도로 정리해드립니다!',
+
+        rows,
     });
-});
+}));
 
 // GET /guide
 router.get('/guide', function(req, res, next) {

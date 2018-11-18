@@ -2,6 +2,9 @@
 .inline-block {display: inline-block;}
 button {cursor: pointer;}
 .include_map {width: 100%; height: calc(100vh - 56px); position: fixed; overflow-y: hidden;}
+
+#gabolga_rank {width: 400px; max-width: 100%;}
+#gabolga_rank caption {caption-side: top; text-align: center;}
 #map {width: 100%; height: 100%}
 #map_pop {position: relative; z-index: 2; margin-left: 5px; width: 500px; max-width: 50%; min-width: 350px;}
 #map_pop div {margin-top: 10px; margin-bottom: 10px;}
