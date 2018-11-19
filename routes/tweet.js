@@ -10,6 +10,7 @@ const appT = require('./common/twit')();
 const postBotConfig = config.get('bot.post');
 const postT = new require('twit')(postBotConfig);
 const telegramSend = require('./common/telegram');
+const ktm2wgs = require('./common/ktm2wgs');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -68,7 +69,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.lat && req.body.lng)) {
+    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.mapx && req.body.mapy)) {
         return res.status(400).send();
     }
 
@@ -86,9 +87,10 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
+    const wgs = await ktm2wgs(req.body.mapx, req.body.mapy);
     await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, lat, lng, writer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-    [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.lat, req.body.lng, req.session.user_id]);
+    [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, wgs.y, wgs.x, req.session.user_id]);
 
     const {data} = await appT.get('statuses/show', {
         id
@@ -237,13 +239,14 @@ router.post('/:id/update', wrapAsync(async (req, res, next) => {
         return res.redirect(`/login?refer=${req.originalUrl}`);
     }
 
-    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.lat && req.body.lng)) {
+    if (!(req.body.name && (req.body.address || req.body.road_address) && req.body.mapx && req.body.mapy)) {
         return res.status(400).send();
     }
 
+    const wgs = await ktm2wgs(req.body.mapx, req.body.mapy);
     await db.query(`INSERT IGNORE INTO tweet_update (tweet_id, name, address, road_address, phone, lat, lng, writer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-    [req.params.id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.lat, req.body.lng, req.session.user_id]);
+    [req.params.id, req.body.name, req.body.address, req.body.road_address, req.body.phone, wgs.y, wgs.x, req.session.user_id]);
 
     await telegramSend(['수정 요청', req.body, 'https://gabolga.gamjaa.com/admin/tweet']);
 

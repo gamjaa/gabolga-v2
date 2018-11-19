@@ -1,35 +1,37 @@
-const ncloud = require('config').get('ncloud');
+const naver = require('config').get('naver');
 const request = require('request-promise-native');
 
 const bTagRegex = /<\/?b>/g;
 
 module.exports = async (query) => {
-    const {meta, places} = await request.get('https://naveropenapi.apigw.ntruss.com/map-place/v1/search', {
+    const {total, items} = await request.get('https://openapi.naver.com/v1/search/local.json', {
         headers: {
-            'X-NCP-APIGW-API-KEY-ID': ncloud.id,
-            'X-NCP-APIGW-API-KEY': ncloud.secret
+            'X-Naver-Client-Id': naver.id,
+            'X-Naver-Client-Secret': naver.secret
         },
         qs: {
             query,
-            coordinate: '127.1054328,37.3595963'
+            display: 5,
+            start: 1,
+            sort: 'random'
         },
         json: true
     });
     
-    const replacedItems = places.map(item => {
-        const name = item.name.replace(bTagRegex, '');
+    const replacedItems = items.map(item => {
+        const name = item.title.replace(bTagRegex, '');
         return {
             name,
-            phone: item.phone_number,
-            address: item.jibun_address,
-            road_address: item.road_address,
-            lat: item.y,
-            lng: item.x,
+            phone: item.telephone,
+            address: item.address,
+            road_address: item.roadAddress,
+            mapx: item.mapx,
+            mapy: item.mapy
         };
     });
     
     return {
-        total: meta.totalCount,
+        total,
         items: replacedItems
     };
 };

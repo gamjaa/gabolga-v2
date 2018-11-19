@@ -182,8 +182,8 @@
         phone: searchedItems[i].phone,
         address: searchedItems[i].address,
         road_address: searchedItems[i].road_address,
-        lat: searchedItems[i].lat,
-        lng: searchedItems[i].lng,
+        mapx: searchedItems[i].mapx,
+        mapy: searchedItems[i].mapy,
       }));
     }
   };
@@ -232,7 +232,7 @@
         searchedItems.push(item);
         
         // 마커 표시
-        const position = new naver.maps.LatLng(item.lat, item.lng);
+        const position = new naver.maps.TransCoord.fromNaverToLatLng(new naver.maps.Point(item.mapx, item.mapy));
         bounds.push(position);
         const marker = new naver.maps.Marker({
           position,
