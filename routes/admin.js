@@ -87,7 +87,7 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
         };
 
         await postT.post('statuses/update', {
-            status: `@${data.user.screen_name} ${row.name}\n${row.road_address || row.address}\n#가볼가 에서 나만의 지도에 '${row.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}#${timestamp}`,
+            status: `@${data.user.screen_name} ${row.name}\n${row.road_address || row.address}\n#가볼가 에서 나만의 지도에 '${row.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`,
             in_reply_to_status_id: id
         }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
     }
@@ -96,14 +96,14 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     if (users[0].is_auto_tweet) {
         const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
         await T.post('statuses/update', {
-            status: `#가볼가 에 '${row.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}#${timestamp}`
+            status: `#가볼가 에 '${row.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`
         });
     }
 
     const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [id, row.writer]);
     alreadyGabolgas.forEach(async gabolga => {
         await sendDM(gabolga.user_id, {
-            text: `가볼가 해두셨던 트윗의 장소 정보가 수정됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}#${timestamp}`,
+            text: `가볼가 해두셨던 트윗의 장소 정보가 수정됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`,
             ctas: [
                 {
                     type: 'web_url',
@@ -115,7 +115,7 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     });
             
     await sendDM(row.writer, {
-        text: `감사합니다! 수정해주신 장소 정보가 반영되었습니다! 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}#${timestamp}`,
+        text: `감사합니다! 수정해주신 장소 정보가 반영되었습니다! 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`,
         ctas: [
             {
                 type: 'web_url',

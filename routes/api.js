@@ -83,6 +83,8 @@ router.get('/thumb', wrapAsync(async (req, res, next) => {
 
 // GET /api/searchLocal
 router.get('/searchLocal', wrapAsync(async (req, res, next) => {
+    await db.query('INSERT INTO search_log(tweet_id, keyword) VALUES (?, ?)', [req.query.tweet_id, req.query.query]);
+
     return res.json(await localSearch(req.query.query));
 }));
 

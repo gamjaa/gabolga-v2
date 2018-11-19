@@ -211,7 +211,7 @@
   };
 
   const getSearchData = (keyword) => {
-    httpGet(`/api/searchLocal?query=${encodeURIComponent(keyword)}`, ({total, items}) => {
+    httpGet(`/api/searchLocal?query=${encodeURIComponent(keyword)}&tweet_id=<%= id %>`, ({total, items}) => {
       markers.forEach(marker => marker.setMap(null));
       markers.length = 0;
       infowindows.length = 0;

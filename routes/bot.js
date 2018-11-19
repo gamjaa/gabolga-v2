@@ -381,6 +381,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     metadata: JSON.stringify({name, address, road_address, phone, lat, lng})
                 };
             });
+            await db.query('INSERT INTO search_log(tweet_id, keyword) VALUES (?, ?)', [user[0].search_tweet_id, text]);
             await sendDM(senderId, {
                 text: places.length 
                     ? `'${text}'(으)로 검색된 장소들입니다. 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있습니다.\n장소 목록이 안 보인다면, 화면 하단의 ☰ 버튼을 눌러주세요.`
