@@ -97,6 +97,10 @@
           <% } %>
         </div>
         <% } %>
+
+        <% if (isGabolga) { %>
+          <button id="btn_show_in_map" class="btn btn-primary" onclick="location.href = '/my/map?tweet_id=<%= id %>'">내 지도에서 보기</button>
+        <% } %>
   
         <% if (!isRegistered && req.session.isLogin) { %>
         <div class="option">
@@ -144,6 +148,7 @@
   });
   
   const btn = document.getElementById('btn_gabolga');
+  const btnShowInMap = document.getElementById('btn_show_in_map');
   const gabolga = () => {
     httpGet('/api/gabolga/<%= id %>', ({isGabolga}) => {
       if (isGabolga) {
@@ -151,11 +156,13 @@
         btn.innerText = '가볼가 취소';
         btn.classList.add('btn-danger');
         btn.classList.remove('btn-primary');
+        btnShowInMap.style.display = 'block';
       } else {
         gtag('event', '가볼가취소');
         btn.innerText = '가볼가 하기';
         btn.classList.add('btn-primary');
         btn.classList.remove('btn-danger');
+        btnShowInMap.style.display = 'none';
       }
     });
   }

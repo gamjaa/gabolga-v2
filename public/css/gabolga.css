@@ -26,6 +26,7 @@ button {cursor: pointer;}
 #tweet_data h3 {width: calc(100% - 130px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 50px;}
 #tweet_data span {width: calc(100% - 50px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 #unreg_tweets_count {position: fixed; margin: auto; left: 0; right: 0; bottom: 20px; width: 350px; max-width: 100%; z-index: 2;}
+#btn_show_in_map {position: fixed; margin: auto; left: 0; right: 0; bottom: 20px; width: 350px; max-width: 100%; z-index: 2;}
 #list tr {cursor: pointer;}
 .card img {min-width: 270px; width: 100%; height: auto;}
 @media screen and (max-width: 800px) {
