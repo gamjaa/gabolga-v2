@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const moment = require('moment');
 const db = require('./db');
 const setMentionPermission = require('./setMentionPermissionAsync');
@@ -22,5 +23,5 @@ module.exports = async ({user, retweet_count, created_at}, userId) => {
     const durationDays = moment.duration(nowDate.diff(tweetDate)).asDays();
 
     return retweet_count >= 1000 
-        || (durationDays <= 3 && retweet_count >= 20) || (durationDays <= 7 && retweet_count >= 100);
+        || (durationDays <= 2 && retweet_count >= 20) || (durationDays <= 7 && retweet_count >= 100);
 };

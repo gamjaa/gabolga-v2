@@ -55,6 +55,9 @@
                 <button class="btn btn-outline-danger" type="button" onclick="setMentionPermission(false)">거부</button>
                 <script>
                     const screenName = document.getElementById('screen_name');
+                    screenName.oninput = () => {
+                        screenName.value = screenName.value.replace(/[^0-9a-zA-Z_]/g, '');
+                    };
                     function httpGet(url, callback) {
                         const http = new XMLHttpRequest();
                         http.open('GET', url, true);

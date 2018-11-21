@@ -94,7 +94,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     const {data} = await appT.get('statuses/show', {
         id
     });
-    if (isSendMention(data, req.session.user_id)) {
+    if (await isSendMention(data, req.session.user_id)) {
         await postT.post('statuses/update', {
             status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 나만의 지도에 '${req.body.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
             in_reply_to_status_id: id

@@ -98,9 +98,7 @@
         </div>
         <% } %>
 
-        <% if (isGabolga) { %>
-          <button id="btn_show_in_map" class="btn btn-primary" onclick="location.href = '/my/map?tweet_id=<%= id %>'">내 지도에서 보기</button>
-        <% } %>
+        <button id="btn_show_in_map" class="btn btn-primary" onclick="location.href = '/my/map?tweet_id=<%= id %>'" style="display: <%= isGabolga ? 'block' : 'none' %>">내 지도에서 보기</button>
   
         <% if (!isRegistered && req.session.isLogin) { %>
         <div class="option">
