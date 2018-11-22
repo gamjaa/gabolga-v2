@@ -10,9 +10,6 @@ module.exports = async ({user, retweet_count, created_at}, userId) => {
 
     const [mentionPermission] = await db.query('SELECT * FROM mention_permission WHERE user_id=?', [user.id_str]);
     const isDenied = _.get(mentionPermission, '[0].is_denied');
-    if (!mentionPermission.length) {
-        await setMentionPermission(user.id_str, null, true);
-    }
     
     if (isDenied) {
         return false;
@@ -21,7 +18,17 @@ module.exports = async ({user, retweet_count, created_at}, userId) => {
     const nowDate = moment();
     const tweetDate = moment(created_at, 'ddd MMM DD HH:mm:ss ZZ YYYY');  // Fri Jun 22 04:51:49 +0000 2018
     const durationDays = moment.duration(nowDate.diff(tweetDate)).asDays();
-
-    return retweet_count >= 1000 
+    
+    const isSendMention = retweet_count >= 1000 
         || (durationDays <= 2 && retweet_count >= 20) || (durationDays <= 7 && retweet_count >= 100);
+
+    if (!isSendMention) {
+        return false;
+    }
+    
+    if (!mentionPermission.length) {
+        await setMentionPermission(user.id_str, null, true);
+    }
+
+    return true;
 };
