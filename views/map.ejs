@@ -6,8 +6,8 @@
     </div>
 
     <% if (unregTweetsCount > 0) { %>
-        <div id="unreg_tweets_count" class="alert alert-danger center" role="alert">
-            <a href="/my/list" class="alert-link">장소가 미등록된 트윗이 <%= unregTweetsCount %>개</a> 있습니다.
+        <button id="unreg_tweets_count" class="btn btn-danger" onclick="location.href = '/my/list'">
+            장소가 미등록된 트윗이 <%= unregTweetsCount %>개 있습니다.
         </div>
     <% } %>
 
