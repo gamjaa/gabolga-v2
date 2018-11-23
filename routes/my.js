@@ -17,7 +17,7 @@ router.get('/map', wrapAsync(async (req, res, next) => {
     }
 
     const getTweetData = async () => {
-        const [tweets] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, lat, lng 
+        const [tweets] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, mapx, mapy 
         FROM (SELECT * FROM my_map WHERE user_id=?) AS my_map
         JOIN tweet ON my_map.tweet_id=tweet.tweet_id
         WHERE my_map.tweet_id=?`, [req.session.user_id, req.query.tweet_id]);

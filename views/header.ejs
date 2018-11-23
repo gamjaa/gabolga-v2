@@ -21,10 +21,10 @@
   <meta name="twitter:site" content="@GABOLGA_bot">
   <meta name="twitter:title" content="가볼가 :: <%= title || '미등록된 장소' %>">
   <meta name="twitter:description" content="<%= desc %>">
-  <meta name="twitter:image" content="<%- (req.baseUrl === '/tweet' && lat) ? `https://gabolga.gamjaa.com/api/thumb?lat=${lat}&lng=${lng}` : 'https://gabolga.gamjaa.com/img/gabolga_w.png' %>">
+  <meta name="twitter:image" content="<%- (req.baseUrl === '/tweet' && mapx) ? `https://gabolga.gamjaa.com/api/thumb?mapx=${mapx}&mapy=${mapy}` : 'https://gabolga.gamjaa.com/img/gabolga_w.png' %>">
   <meta name="og:title" content="가볼가 :: <%= title || '미등록된 장소' %>">
   <meta name="og:description" content="<%= desc %>">
-  <meta name="og:image" content="<%- (req.baseUrl === '/tweet' && lat) ? `https://gabolga.gamjaa.com/api/thumb?lat=${lat}&lng=${lng}` : 'https://gabolga.gamjaa.com/img/gabolga_w.png' %>">
+  <meta name="og:image" content="<%- (req.baseUrl === '/tweet' && mapx) ? `https://gabolga.gamjaa.com/api/thumb?mapx=${mapx}&mapy=${mapy}` : 'https://gabolga.gamjaa.com/img/gabolga_w.png' %>">
 </head>
 <body <%- (req.path === '/map' || req.baseUrl === '/tweet') ? 'class="include_map"' : '' %>>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -64,9 +64,9 @@
       <form action="/api/tweet" class="form-inline">
         <div class="input-group">
           <input name="url" class="form-control" required minlength="2" placeholder="트윗 링크 / 검색어" aria-label="트윗 링크 / 검색어">
-          <span class="input-group-btn">
+          <div class="input-group-append">
             <button class="btn btn-outline-primary" type="submit" onclick="gtag('event', '트윗검색')">장소 찾기</button>
-          </span>
+          </div>
         </div>
       </form>
     </div>

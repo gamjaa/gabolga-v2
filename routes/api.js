@@ -16,15 +16,15 @@ router.get('/map', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    if (!(req.query.minLat && req.query.maxLat && req.query.minLng && req.query.maxLng)) {
+    if (!(req.query.minX && req.query.maxX && req.query.minY && req.query.maxY)) {
         return res.status(400).send();
     }
 
-    const [rows] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, lat, lng 
+    const [rows] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, mapx, mapy
         FROM (SELECT * FROM my_map WHERE user_id=?) AS my_map
         JOIN tweet ON my_map.tweet_id=tweet.tweet_id
-        WHERE lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?`,
-    [req.session.user_id, req.query.minLat, req.query.maxLat, req.query.minLng, req.query.maxLng]);
+        WHERE mapx BETWEEN ? AND ? AND mapy BETWEEN ? AND ?`,
+    [req.session.user_id, req.query.minX, req.query.maxX, req.query.minY, req.query.maxY]);
     return res.json(rows);
 }));
 
@@ -70,12 +70,13 @@ router.get('/thumb', wrapAsync(async (req, res, next) => {
             'X-NCP-APIGW-API-KEY': ncloud.secret
         },
         qs: {
-            center: `${req.query.lng},${req.query.lat}`,
+            crs: 'NHN:128',
+            center: `${req.query.mapx},${req.query.mapy}`,
             level: 12,
             w: 505,
             h: 253,
             scale: 1,
-            markers: `pos:${req.query.lng} ${req.query.lat}`,
+            markers: `pos:${req.query.mapx} ${req.query.mapy}`,
             ClientID: ncloud.id
         }
     }).pipe(res);

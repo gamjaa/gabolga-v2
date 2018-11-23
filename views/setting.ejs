@@ -47,6 +47,38 @@
     </form>
 
     <% if (req.session.user_id === '62192325') { %>
+        <h3>관리자 메뉴</h3>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="twitter screen name" id="screen_name">
+            <div class="input-group-append">
+                <button class="btn btn-outline-primary" type="button" onclick="setMentionPermission(true)">허락</button>
+                <button class="btn btn-outline-danger" type="button" onclick="setMentionPermission(false)">거부</button>
+                <script>
+                    const screenName = document.getElementById('screen_name');
+                    screenName.oninput = () => {
+                        screenName.value = screenName.value.replace(/[^0-9a-zA-Z_]/g, '');
+                    };
+                    function httpGet(url, callback) {
+                        const http = new XMLHttpRequest();
+                        http.open('GET', url, true);
+                        http.onreadystatechange = function () {
+                        if (http.readyState === 4 && typeof callback === 'function') {
+                            callback(JSON.parse(http.responseText));
+                        }
+                        };
+                        http.send();
+                    }
+                    const setMentionPermission = bool => {
+                        httpGet(`/admin/mention-permission?screen_name=${screenName.value}${bool ? '' : '&is_denied=1'}`, ({result}) => {
+                            alert(result);
+                        });
+                    };
+                </script>
+            </div>
+        </div>
+        <script>
+        
+        </script>
         <a href="/admin/tweet">트윗 수정 요청 목록</a>
     <% } %>
 </div>

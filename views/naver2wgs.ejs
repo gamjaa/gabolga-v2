@@ -1,0 +1,33 @@
+<%- include('header') %>
+<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=uwuqnx1j3m&submodules=geocoder"></script>
+<div class="container">
+  <h3>
+    <%= title %>
+  </h3>
+  <button class="btn btn-primary" onclick="convert()">적용</button>
+  
+<script>
+    const rows = <%- rows %>;
+    const convert = () => {
+        for (const row of rows) {
+            const naverxy = new naver.maps.Point(row.mapx, row.mapy);
+            const latlng = naver.maps.TransCoord.fromTM128ToLatLng(naverxy);
+            if (latlng.x !== row.lng || latlng.y !== row.lat) {
+                httpReq('PUT', `/admin/convert/naver2wgs/${row.tweet_id}?lng=${latlng.x}&lat=${latlng.y}`);
+            }
+        }
+    };
+    
+    function httpReq(method, url) {
+        const http = new XMLHttpRequest();
+        http.open(method, url, true);
+        http.onreadystatechange = function () {
+        if (http.readyState === 4) {
+            console.log(url, 'done');
+        }
+        };
+        http.send();
+    }
+    </script>
+</div>
+<%- include('footer') %>
