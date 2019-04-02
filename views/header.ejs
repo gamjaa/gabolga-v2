@@ -74,6 +74,6 @@
   <% if (req.session.isLogin) { %>
     <button onclick="gtag('event', '로그아웃'); location.href='/logout?refer=<%= req.baseUrl === '/my' ? '/' : req.originalUrl %>'" class="btn btn-outline-success" type="button">로그아웃</button>
   <% } else { %>
-    <a href="/login?refer=<%= req.originalUrl %>" alt="Sign in with Twitter" onclick="gtag('event', '로그인')"><img src="https://g.twimg.com/dev/sites/default/files/images_documentation/sign-in-with-twitter-gray.png"></a>
+    <a href="/login?refer=<%= req.originalUrl %>" alt="트위터 계정으로 로그인" onclick="gtag('event', '로그인')"><img src="/img/sign-in-with-twitter-gray.png" alt="Sign in with Twitter"></a>
   <% } %>
   </nav>
