@@ -184,6 +184,11 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query(`INSERT IGNORE INTO tweet (tweet_id, name, address, road_address, phone, mapx, mapy, writer) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
                 [tweetId, name, address, road_address, phone, mapx, mapy, senderId]);
+
+                
+                await postT.post('statuses/update', {
+                    status: `${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\nhttps://twitter.com/i/status/${tweetId}`
+                });
                 
                 await sendDM(senderId, {
                     text: `등록해주셔서 감사합니다. ${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 기록되었습니다!`,
