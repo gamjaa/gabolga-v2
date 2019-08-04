@@ -1,17 +1,29 @@
 .center {text-align: center;}
+.center #twitter-widget-0 {margin: auto !important;}
 .inline-block {display: inline-block;}
+.gray {color: #6c757d;}
+.text_ellipsis {text-overflow: ellipsis; white-space: nowrap; max-width: 100%;}
 button {cursor: pointer;}
-.include_map {width: 100%; height: calc(100vh - 56px); position: fixed; overflow-y: hidden;}
 
+.container {padding-top: 20px; min-height: calc(100vh - 60px);}
+.container h3 {margin-bottom: 20px;}
+.container img {max-width: calc(100% - 50px); height: auto;}
+
+/* index */
 #gabolga_rank {width: 400px; max-width: 100%;}
 #gabolga_rank caption {caption-side: top; text-align: center;}
+
+/* 지도 */
+.include_map {width: 100%; height: calc(100vh - 56px); position: fixed; overflow-y: hidden;}
 #map {width: 100%; height: 100%}
+
 #map_pop {position: relative; z-index: 2; margin-left: 5px; width: 500px; max-width: 50%; min-width: 350px;}
-#map_pop div {margin-top: 10px; margin-bottom: 10px;}
-#twitter-widget-0 {margin: 0 !important;}
-#tweet {opacity: 0.9;}
-#tweet p {opacity: 1;}
+#map_pop > div {margin-top: 10px; margin-bottom: 10px;}
+#map_pop #tweet {opacity: 0.95;}
+#map_pop #tweet p {opacity: 1;}
+
 #data {width: 100%; overflow: auto; background-color: rgba(255, 255, 255, 0.85); border-radius: 5px; border: 1px solid #e1e8ed;}
+#data div {margin-top: 10px; margin-bottom: 10px;}
 #gabolga {float: left; width: 100%; padding: 0px 10px 0px 10px; }
 #gabolga h3 {width: calc(100% - 130px); line-height: 50px; word-break: keep-all;}
 #gabolga span {width: calc(100% - 50px);}
@@ -21,21 +33,20 @@ button {cursor: pointer;}
 #route_link {position: absolute; right: 0; width: 130px; margin: 0; padding: 0;}
 #route_link a {padding-left: 10px; cursor: pointer;}
 #route_link img {width: 50px; height: 50px;}
+
 #now_pos {position: absolute; top: 10px; left: 10px; width: 50px; height: 50px; z-index: 2;}
 #tweet_data {display: none; position: fixed; margin: auto; left: 0; right: 0; bottom: 20px; width: 500px; max-width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.9); border-radius: 5px; border: 1px solid #e1e8ed; z-index: 2;}
-#tweet_data h3 {width: calc(100% - 130px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 50px;}
-#tweet_data span {width: calc(100% - 50px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+#tweet_data h3 {width: calc(100% - 130px); line-height: 50px;}
+#tweet_data span {width: calc(100% - 50px);}
 #unreg_tweets_count {position: fixed; margin: auto; left: 0; right: 0; bottom: 20px; width: 350px; max-width: 100%; z-index: 2;}
 #btn_show_in_map {position: fixed; margin: auto; left: 0; right: 0; bottom: 20px; width: 350px; max-width: 100%; z-index: 2;}
-#list tr {cursor: pointer;}
-.card img {min-width: 270px; width: 100%; height: auto;}
-@media screen and (max-width: 800px) {
-    .mobile {display: none;}
-}
-.container {padding-top: 20px; min-height: calc(100vh - 60px);}
-.container h3 {margin-bottom: 20px;}
-.container img {max-width: calc(100% - 50px); height: auto;}
 
+#list tr {cursor: pointer;}
+
+/* 트윗 */
+#tweet {max-width: 550px; width: 100%; text-align: left; border: 1px solid #ced4da; border-radius: 10px; padding: 10px; background-color: #fff; cursor: pointer;}
+
+/* 장소 등록 */
 #placesList {padding-left: 0;}
 #placesList li {list-style: none;}
 
@@ -61,3 +72,7 @@ button {cursor: pointer;}
 #placesList .item .marker_8 {background-position: -203px 0px;}
 #placesList .item .marker_9 {background-position: -232px 0px;}
 #placesList .item .marker_10 {background-position: -261px 0px;}
+
+@media screen and (max-width: 800px) {
+    .mobile {display: none;}
+}

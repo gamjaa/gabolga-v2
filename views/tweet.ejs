@@ -5,38 +5,37 @@
     <div id="map_pop">
       <script>let isShowTweet = true;</script>
   
-      <button id="tweet_switch" onclick="tweetSwitch(isShowTweet)" class="btn btn-sm btn-primary">숨기기</button>
+      <button id="tweet_switch" onclick="setTweetShow(!isShowTweet)" class="btn btn-sm btn-primary">숨기기</button>
   
-      <div id="tweet">
-        <%- tweetHtml %>
-      </div>
+      <%- include('tweetObject', {tweet: tweet, link: `https://twitter.com/i/status/${tweet.id_str}`}); -%>
+      
       <div id="padding"></div>
   
       <script>
-      const tweetSwitch = (i) => {
-        if (i) {
+      const setTweetShow = (isShow) => {
+        if (isShow) {
           document.getElementById('tweet').style.display = 'block';
           document.getElementById('tweet_switch').innerText = '숨기기';
           document.getElementById('padding').style.paddingBottom = '0';
-          isShowTweet = false;
+          isShowTweet = true;
         } else {
           document.getElementById('tweet').style.display = 'none';
           document.getElementById('tweet_switch').innerText = '트윗 보이기';
           document.getElementById('padding').style.paddingBottom = '40px';
-          isShowTweet = true;
+          isShowTweet = false;
         }
       };
 
       document.body.scrollTop = 0;
       if (window.innerHeight < 900) {
-        tweetSwitch(false);
+        setTweetShow(false);
       }
       window.onresize = function() {
         document.body.scrollTop = 0;
         if (window.innerHeight < 650) {
-          tweetSwitch(false);
+          setTweetShow(false);
         } else {
-          tweetSwitch(true);
+          setTweetShow(true);
         }
       };
       </script>
@@ -48,7 +47,7 @@
       <% } %>
   
       <div id="data">
-        <% if (isRegistered) { %>
+      <% if (isRegistered) { %>
           <% if (name) { %>
             <div id="route_link">
               <script>
@@ -96,9 +95,9 @@
             <a href="/tweet/<%= id %>/update" id="tweet_update_btn" class="badge badge-info">수정 요청</a>
           <% } %>
         </div>
-        <% } %>
 
         <button id="btn_show_in_map" class="btn btn-primary" onclick="location.href = '/my/map?tweet_id=<%= id %>'" style="display: <%= isGabolga ? 'block' : 'none' %>">내 지도에서 보기</button>
+        <% } %>
   
         <% if (!isRegistered && req.session.isLogin) { %>
         <div class="option">

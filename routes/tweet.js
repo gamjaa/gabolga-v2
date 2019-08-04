@@ -36,12 +36,12 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
     const [tweets] = await db.query(query, [id]);
     const [tweetUpdates] = await db.query('SELECT tweet_id FROM tweet_update WHERE tweet_id=?', [id]);
     const T = getNewTwit();
-    const result = await T.get('statuses/oembed', {
+    const result = await T.get('statuses/show', {
         id, 
-        hide_media: true, 
-        hide_thread: true, 
-        lang: 'ko'
-    }).catch(() => Promise.resolve({ data: { html: '<div id="data" style="line-height: 100px; text-align: center;">삭제되거나 비공개된 트윗입니다</div>' } }));
+        include_entities: true,
+        include_card_uri: false,
+        tweet_mode: 'extended',
+    }).catch(() => Promise.resolve({ data: { id: null } }));
     return res.render('tweet', { 
         req,
         title: _.get(tweets, '[0].name'),
@@ -49,7 +49,7 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         isRegistered: tweets.length,
         hasUpdate: tweetUpdates.length,
         
-        tweetHtml: result.data.html,
+        tweet: result.data,
         id, 
         name: _.get(tweets, '[0].name'),
         address: _.get(tweets, '[0].address'),

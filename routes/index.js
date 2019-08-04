@@ -12,13 +12,34 @@ const wrapAsync = require('./common/wrapAsync');
 
 // GET /
 router.get('/', wrapAsync(async (req, res, next) => {
-    const [rows] = await db.query('SELECT * FROM tweet_rank_24h');
+    const getUnregisteredTweetDataAsync = async () => {
+        const [rows] = await db.query('SELECT * FROM tweet_unregistered');
+
+        const getRandomTweetData = async () => {
+            const i = _.random(rows.length - 1, false);
+            const tweet = await dmT.get('statuses/show', {
+                id: rows[i].tweet_id,
+                include_entities: true,
+                include_card_uri: false,
+                tweet_mode: 'extended',
+            }).catch(() => null);
+
+            if (!tweet || tweet.data.retweet_count + tweet.data.favorite_count < 5) {
+                return getRandomTweetData();
+            }
+
+            return tweet.data;
+        };
+        
+        return await getRandomTweetData();
+    };
 
     return res.render('index', { 
         req,
         title: '트위터 맛집, 지도로 정리해드립니다!',
 
-        rows,
+        rankedTweets: (await db.query('SELECT * FROM tweet_rank_24h'))[0],
+        unregisteredTweet: await getUnregisteredTweetDataAsync(),
     });
 }));
 
@@ -176,5 +197,15 @@ router.get('/logout', function(req, res, next) {
 router.get('*.php', function(req, res, next) {
     return res.redirect('/');
 });
+
+router.get('/test', wrapAsync(async (req, res, next) => {
+    const tweet = await dmT.get('statuses/show', {
+        id: '1156899880255676416'
+    });
+    console.log(tweet);
+    return res.render('tweet_test', { 
+        tweet: tweet.data
+    });
+}));
 
 module.exports = router;
