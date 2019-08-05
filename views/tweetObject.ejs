@@ -15,7 +15,7 @@
         </script>
       </div>
 
-      <%- tweet.full_text.replace(/\n/g, '<br>') %>
+      <%- tweet.full_text.slice(tweet.display_text_range[0], tweet.display_text_range[1]).replace(/\n/g, '<br>') %>
 
       <% if (tweet.extended_entities) { %>
       <div style="margin-top: 10px; width: <%= tweet.extended_entities.media.length < 4 ? '100%' : '400px' %>;">

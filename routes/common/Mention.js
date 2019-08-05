@@ -4,7 +4,7 @@ const postBotConfig = config.get('bot.post');
 const moment = require('moment');
 const twit = require('twit');
 const postT = new twit(postBotConfig);
-const T = require('./common/twit')();
+const T = require('./twit')();
 const db = require('./db');
 const sendDM = require('./sendDmAsync');
 
