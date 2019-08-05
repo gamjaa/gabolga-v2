@@ -43,6 +43,7 @@ router.get('/', wrapAsync(async (req, res, next) => {
     });
 }));
 
+
 // GET /guide
 router.get('/guide', function(req, res, next) {
     return res.render('guide', { 
@@ -50,6 +51,17 @@ router.get('/guide', function(req, res, next) {
         title: '사용법'
     });
 });
+
+// GET /about
+router.get('/about', wrapAsync(async (req, res, next) => {
+    const [rankedTweets] = await db.query('SELECT tweet_id, name FROM tweet_rank LIMIT 10');
+
+    return res.render('about', { 
+        req,
+        title: '소개',
+        rankedTweets,
+    });
+}));
 
 // GET /random
 router.get('/random', wrapAsync(async (req, res, next) => {
