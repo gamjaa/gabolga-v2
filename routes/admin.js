@@ -7,8 +7,7 @@ const config = require('config');
 const appT = require('./common/twit')();
 const postBotConfig = config.get('bot.post');
 const postT = new require('twit')(postBotConfig);
-const setMentionPermission = require('./common/setMentionPermissionAsync');
-const isSendMention = require('./common/isSendMentionAsync');
+const Mention = require('./common/Mention');
 
 const adminId = '62192325';
 
@@ -42,9 +41,6 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     await db.query('UPDATE tweet SET name=?, address=?, road_address=?, phone=?, mapx=?, mapy=?, writer=?, write_time=? WHERE tweet_id=?',
         [row.name, row.address, row.road_address, row.phone, row.mapx, row.mapy, row.writer, row.write_time, id]);
 
-    const {data} = await appT.get('statuses/show', {
-        id
-    });
     const deleteOldTweets = async () => {
         const {data} = await postT.get('search/tweets', {
             q: `from:gabolga_bot https://gabolga.gamjaa.com/tweet/${id}`,
@@ -58,14 +54,8 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     };
 
     const timestamp = +new Date();
-    if (isSendMention(data, row.writer)) {
-        await deleteOldTweets();
-
-        await postT.post('statuses/update', {
-            status: `@${data.user.screen_name} ${row.name}\n${row.road_address || row.address}\n#가볼가 에서 나만의 지도에 '${row.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`,
-            in_reply_to_status_id: id
-        }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
-    }
+    await deleteOldTweets();
+    await Mention.executeSendProcess(id, row.writer, row, timestamp);
 
     const [users] = await db.query('SELECT oauth_token, oauth_token_secret, is_auto_tweet FROM users WHERE user_id=?', [row.writer]);
     if (users[0].is_auto_tweet) {
@@ -127,7 +117,7 @@ router.get('/mention-permission', wrapAsync(async (req, res, next) => {
     const {data} = await appT.get('users/show', {
         screen_name
     });
-    await setMentionPermission(data.id_str, isDenied, true);
+    await Mention.setPermission(data.id_str, isDenied);
 
     return res.json({
         result: `${screen_name}(${data.id_str}) 님에게 멘션 ${isDenied ? '거부' : '허용'}`

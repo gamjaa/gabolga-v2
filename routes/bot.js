@@ -14,8 +14,7 @@ const getNewTwit = require('./common/twit');
 const appT = getNewTwit();
 const sendDM = require('./common/sendDmAsync');
 const telegramSend = require('./common/telegram');
-const setMentionPermission = require('./common/setMentionPermissionAsync');
-const isSendMention = require('./common/isSendMentionAsync');
+const Mention = require('./common/Mention');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const gabolgaRegex = /gabolga.gamjaa.com\/tweet\/([0-9]+)/;
@@ -42,10 +41,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
     if (header !== headerCheck) {
         return res.status(403).send();
     }
-    
-    // Favorite
-    if (_.get(req.body, 'favorite_events[0].favorited_status.user.id_str') === '903176813517479936') {
-        const url = _.get(req.body, 'favorite_events[0].favorited_status.entities.urls[0].expanded_url');
+
+    const gabolgaAsync = async (url, eventObject) => {
         if (!gabolgaRegex.test(url)) {
             return res.status(200).send();
         }
@@ -126,18 +123,46 @@ router.post('/', wrapAsync(async (req, res, next) => {
         req.body.direct_message_events[0].message_create.sender_id !== '903176813517479936') {
         const senderId = req.body.direct_message_events[0].message_create.sender_id;
         const text = req.body.direct_message_events[0].message_create.message_data.text;
+        const noSpaceText = text.replace(/\s/g, '');
 
         await db.query('INSERT INTO dm (dm_id, user_id, text) VALUES (?, ?, ?)', 
             [req.body.direct_message_events[0].id, senderId, text]);
 
-        if (/멘션\s?거부/.test(text)) {
-            await setMentionPermission(senderId, true, true);
+        if (['거부', '거절', '달지', '안달', '안다', '불허', '원치', '허락하지'].includes(noSpaceText)) {
+            await Mention.setPermission(senderId, true);
+            await sendDM(senderId, {
+                text: '답변해주셔서 감사합니다. 거부 처리 완료되었습니다.\n혹시 생각이 바뀌신다면 언제든지 "멘션허용"이라고 보내주시면 됩니다. 감사합니다.',
+                quick_reply: {
+                    type: 'options',
+                    options: [
+                        {
+                            label: '멘션허용',
+                            description: '답글이 달리는 것을 허용합니다',
+                            metadata: senderId
+                        }
+                    ]
+                }
+            });
 
             return res.status(200).send();
         }
 
-        if (/멘션\s?허락/.test(text)) {
-            await setMentionPermission(senderId, false, true);
+        if (['허용', '허락', '다셔도', '달아도', '괜찮', '상관없'].includes(noSpaceText)) {
+            await Mention.setPermission(senderId, false);
+            await sendDM(senderId, {
+                text: `허락해주셔서 감사합니다, ${name} 님!\n혹시 생각이 바뀌신다면 언제든지 "멘션거부"라고 보내주시면 됩니다. 불편하게 느끼시지 않도록 노력하겠습니다.\n좋은 하루 보내시길 바랍니다.`,
+                quick_reply: {
+                    type: 'options',
+                    options: [
+                        {
+                            label: '멘션거부',
+                            description: '답글이 달리는 것을 거부합니다',
+                            metadata: senderId
+                        }
+                    ]
+                }
+            });
+            await Mention.sendMentionInQue(senderId);
 
             return res.status(200).send();
         }
@@ -210,15 +235,9 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
 
-                const {data} = await appT.get('statuses/show', {
-                    id: tweetId
+                await Mention.executeSendProcess(tweetId, senderId, {
+                    name, address, road_address
                 });
-                if (await isSendMention(data, req.session.user_id)) {
-                    await postT.post('statuses/update', {
-                        status: `@${data.user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 나만의 지도에 '${name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
-                        in_reply_to_status_id: tweetId
-                    }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
-                }
 
                 const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [tweetId, senderId]);
                 alreadyGabolgas.forEach(async gabolga => {
@@ -363,6 +382,54 @@ router.post('/', wrapAsync(async (req, res, next) => {
             });
         }
 
+
+        return res.status(200).send();
+    }
+
+    // Mention
+    if (_.get(req.body, 'tweet_create_events[0].in_reply_to_user_id_str') === '903176813517479936') {
+        const eventObject = req.body.tweet_create_events[0];
+
+        if (!eventObject.in_reply_to_status_id_str) {
+            // 일반 멘션 무시
+            return res.status(200).send();
+        }
+
+        const parentTweet = await appT.get('statuses/show', {
+            id: eventObject.in_reply_to_status_id_str,
+            tweet_mode: 'extended',
+        });
+
+        if (!parentTweet.data.full_text.includes('멘션거부')) {
+            // 멘션허락, 거부 답글 이외 무시
+            return res.status(200).send();
+        }
+
+        const senderId = eventObject.user.id_str;
+        const noSpaceText = eventObject.text.replace(/\s/g, '');
+
+        if (['거부', '거절', '달지', '안달', '안다', '불허', '원치', '원하지', '허락하지'].includes(noSpaceText)) {
+            // 거절 멘션
+            await Mention.setPermission(senderId, true);
+            await postT.post('statuses/update', {
+                status: `@${eventObject.user.screen_name} 답변해주셔서 감사합니다. 거부 처리 완료되었습니다.\n혹시 생각이 바뀌신다면 언제든지 "멘션허용"이라고 보내주시면 됩니다. 감사합니다.`,
+                in_reply_to_status_id: eventObject.id_str
+            });
+
+            return res.status(200).send();
+        }
+
+        if (['허용', '허락', '다셔도', '달아도', '괜찮', '상관없'].includes(noSpaceText)) {
+            // 허용 멘션
+            await Mention.setPermission(senderId, false);
+            await postT.post('statuses/update', {
+                status: `@${eventObject.user.screen_name} 허락해주셔서 감사합니다!\n혹시 생각이 바뀌신다면 언제든지 "멘션거부"라고 보내주시면 됩니다. 불편하게 느끼시지 않도록 노력하겠습니다.\n좋은 하루 보내시길 바랍니다.`,
+                in_reply_to_status_id: eventObject.id_str
+            });
+            await Mention.sendMentionInQue(senderId);
+
+            return res.status(200).send();
+        }
 
         return res.status(200).send();
     }

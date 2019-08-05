@@ -5,12 +5,11 @@ const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 const getNewTwit = require('./common/twit');
 const config = require('config');
-const appT = require('./common/twit')();
+const T = getNewTwit();
 const postBotConfig = config.get('bot.post');
 const postT = new require('twit')(postBotConfig);
 const telegramSend = require('./common/telegram');
-const setMentionPermission = require('./common/setMentionPermissionAsync');
-const isSendMention = require('./common/isSendMentionAsync');
+const Mention = require('./common/Mention');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -35,7 +34,6 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         WHERE tweet.tweet_id=?`;
     const [tweets] = await db.query(query, [id]);
     const [tweetUpdates] = await db.query('SELECT tweet_id FROM tweet_update WHERE tweet_id=?', [id]);
-    const T = getNewTwit();
     const result = await T.get('statuses/show', {
         id, 
         include_entities: true,
@@ -81,47 +79,39 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         return res.status(400).send();
     }
 
-    const id = idRegex.exec(req.params.id)[1];
-    const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [id]);
+    const tweetId = idRegex.exec(req.params.id)[1];
+    const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [tweetId]);
     if (rows.length) {
         return res.status(400).send();
     }
 
     await db.query(`INSERT INTO tweet (tweet_id, name, address, road_address, phone, mapx, mapy, writer) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-    [id, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
+    [tweetId, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
 
-    const {data} = await appT.get('statuses/show', {
-        id
-    });
     await postT.post('statuses/update', {
-        status: `${req.body.name}\n${req.body.road_address || req.body.address}\nhttps://gabolga.gamjaa.com/tweet/${id}\nhttps://twitter.com/i/status/${id}`
+        status: `${req.body.name}\n${req.body.road_address || req.body.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\nhttps://twitter.com/i/status/${tweetId}`
     });
 
-    if (await isSendMention(data, req.session.user_id)) {
-        await postT.post('statuses/update', {
-            status: `@${data.user.screen_name} ${req.body.name}\n${req.body.road_address || req.body.address}\n#가볼가 에서 나만의 지도에 '${req.body.name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
-            in_reply_to_status_id: id
-        }).catch(async () => Promise.resolve(await setMentionPermission(data.user.id_str, true)));
-    }
+    await Mention.executeSendProcess(tweetId, req.session.user_id, req.body);
 
     const [users] = await db.query('SELECT oauth_token, oauth_token_secret, is_auto_tweet FROM users WHERE user_id=?', [req.session.user_id]);
     if (users[0].is_auto_tweet) {
         const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
         await T.post('statuses/update', {
-            status: `#가볼가 에 '${req.body.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${id}`
+            status: `#가볼가 에 '${req.body.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
         });
     }
 
-    const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [id, req.session.user_id]);
+    const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [tweetId, req.session.user_id]);
     alreadyGabolgas.forEach(async gabolga => {
         await sendDM(gabolga.user_id, {
-            text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}`,
+            text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
             ctas: [
                 {
                     type: 'web_url',
                     label: '내 지도 보기',
-                    url: `https://gabolga.gamjaa.com/my/map?tweet_id=${id}`
+                    url: `https://gabolga.gamjaa.com/my/map?tweet_id=${tweetId}`
                 }
             ]
         });
@@ -133,7 +123,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
             {
                 type: 'web_url',
                 label: '내 지도 보기',
-                url: `https://gabolga.gamjaa.com/my/map?tweet_id=${id}`
+                url: `https://gabolga.gamjaa.com/my/map?tweet_id=${tweetId}`
             }
         ]
     }).catch(() => Promise.resolve());
@@ -157,7 +147,6 @@ router.get('/:id/update', wrapAsync(async (req, res, next) => {
     FROM tweet_update 
     LEFT JOIN my_map ON (tweet_update.tweet_id=my_map.tweet_id AND my_map.user_id=?)
     WHERE tweet_update.tweet_id=?`, [req.session.user_id, id]);
-    const T = getNewTwit();
     const result = await T.get('statuses/oembed', {
         id, 
         hide_media: true, 
