@@ -249,6 +249,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 return res.status(200).send();
             }
 
+            await telegramSend([`@${req.body.users[senderId].screen_name}`, text], true);
+
             const noSpaceText = text.replace(/\s/g, '');
                 
             if (/거부|거절|달지|안달|안다|불허|원치|원하지|허락하지/.test(noSpaceText)) {
@@ -315,8 +317,6 @@ router.post('/', wrapAsync(async (req, res, next) => {
                     },
                 ]
             });
-
-            await telegramSend([`@${req.body.users[senderId].screen_name}`, text], true);
 
             return res.status(200).send();
         }
