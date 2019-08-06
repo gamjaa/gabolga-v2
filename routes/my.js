@@ -92,6 +92,7 @@ router.get('/setting', wrapAsync(async (req, res, next) => {
     }
 
     const [rows] = await db.query('SELECT has_setting, is_auto_tweet, is_anonymous FROM users WHERE user_id=?', [req.session.user_id]);
+    const gabolgaCount = !req.query.refer ? null : (await db.query('SELECT count(*) AS count FROM my_map WHERE user_id=?', [req.session.user_id]))[0][0].count;
 
     return res.render('setting', { 
         req,
@@ -99,6 +100,7 @@ router.get('/setting', wrapAsync(async (req, res, next) => {
 
         name: req.session.screen_name,
         hasRefer: req.query.refer,
+        gabolgaCount,
         isAutoTweet: !rows[0].has_setting || rows[0].is_auto_tweet,
         isAnonymous: rows[0].has_setting && rows[0].is_anonymous
     });

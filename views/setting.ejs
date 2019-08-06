@@ -2,8 +2,18 @@
 <div class="container">
     <h3>
         설정
-        <small class="text-muted"><%= name %> 님의 가볼가 기능을 설정할 수 있어요.</small>
+        <small class="text-muted">가볼가의 동작을 설정할 수 있어요.</small>
     </h3>
+    <% if (hasRefer) { %>
+    <p>
+        가볼가 웹사이트에 처음 오셨군요! 🤗<br>
+        <% if (gabolgaCount) { %>
+        이미 '가볼가' 하신 트윗이 <%= gabolgaCount %>개나 되네요! 👍<br>
+        <% } %>
+        설정을 마치면 <%= req.session.screen_name %> 님만의 지도를 보실 수 있어요.<br>
+        가볼가 계정을 팔로우 하시면 더 편리하게 이용하실 수 있답니다. 😉
+    </p>
+    <% } %>
     <form class="form" id="form" action="<%= req.originalUrl %>" method="post">
         <div class="form-group row">
             <label class="col-sm-2 control-label">알림 트윗 게시</label>
@@ -31,7 +41,7 @@
         </div>
 
         <div class="form-group row">
-            <label class="col-sm-2 control-label">문의/건의사항 등</label>
+            <label class="col-sm-2 control-label">하고싶은 말은</label>
             <div class="col-sm-10">
             <a href="https://twitter.com/intent/tweet?screen_name=GABOLGA_bot" class="twitter-mention-button" data-lang="ko" data-size="large" data-related="GABOLGA_bot" data-dnt="true">Tweet to @GABOLGA_bot</a>
             <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>

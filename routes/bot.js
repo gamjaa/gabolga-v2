@@ -425,7 +425,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
         [userId, screenName, screenName]);
 
         await sendDM(userId, {
-            text: `반가워요, ${name} 님! 🤗 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${name} 님의 지도에 기록해드릴게요.`,
+            text: `반가워요, ${name} 님! 🤗 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 있는 트윗을 DM으로 보내주세요! ${name} 님의 지도에 기록해드릴게요.`,
             ctas: [
                 {
                     type: 'web_url',
@@ -439,6 +439,20 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 }
             ]
         });
+        
+        const gabolgaCount = (await db.query('SELECT count(*) AS count FROM my_map WHERE user_id=?', [userId]))[0][0].count;
+        if (gabolgaCount) {
+            await sendDM(userId, {
+                text: `앗! 이미 가볼가 하신 트윗이 ${gabolgaCount}개 있네요! 👍\n얼른 확인하러 가볼까요? 💨💨💨`,
+                ctas: [
+                    {
+                        type: 'web_url',
+                        label: `${screenName} 님의 지도`,
+                        url: 'https://gabolga.gamjaa.com/my/map'
+                    }
+                ]
+            });
+        }
         
         return res.status(200).send();
     }
