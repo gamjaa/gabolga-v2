@@ -18,10 +18,8 @@
       <%- tweet.full_text.slice(tweet.display_text_range[0], tweet.display_text_range[1]).replace(/\n/g, '<br>') %>
 
       <% if (tweet.extended_entities) { %>
-      <div style="margin-top: 10px; width: 100%; display: flex;">
-        <% tweet.extended_entities.media.forEach(media => { %>
-            <img src="<%= media.media_url_https %>?name=thumb" style="width: auto; max-height: 300px;">
-        <% }); %>
+      <div style="margin-top: 10px; width: 100%;">
+        <% tweet.extended_entities.media.forEach(media => { %><img src="<%= media.media_url_https %>?name=thumb" style="height: auto; max-width: calc(100% / <%= tweet.extended_entities.media.length %>); max-height: 300px;"><% }); %>
       </div>
       <% } %>
 
