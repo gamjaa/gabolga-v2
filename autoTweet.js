@@ -19,7 +19,7 @@ const excute = async () => {
     const i = await getRandomIndex();
     const {tweet_id, name, road_address, address} = rows[i];
 
-    const status = `${moment.format('M월 D일')}, 오늘의 #가볼가 할 만한 곳\n${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweet_id}`;
+    const status = `📆 ${moment.format('M월 D일')}, 오늘의 #가볼가 할 만한 곳을 추천합니다! 🧐\n${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweet_id}`;
     await T.post('statuses/update', {
         status
     }).catch(err => {

@@ -99,14 +99,14 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     if (users[0].is_auto_tweet) {
         const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
         await T.post('statuses/update', {
-            status: `#가볼가 에 '${req.body.name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+            status: `#가볼가 에 '${req.body.name}'을(를) 등록했어요! ✌\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
         });
     }
 
     const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [tweetId, req.session.user_id]);
     alreadyGabolgas.forEach(async gabolga => {
         await sendDM(gabolga.user_id, {
-            text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+            text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 🎉 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
             ctas: [
                 {
                     type: 'web_url',
@@ -118,7 +118,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     });
             
     await sendDM(req.session.user_id, {
-        text: `등록해주셔서 감사합니다. ${req.session.screen_name} 님의 지도에 '${req.body.name}'이(가) 기록되었습니다!`,
+        text: `등록해주셔서 감사해요! 😍 ${req.session.screen_name} 님의 지도에 '${req.body.name}'이(가) 기록됐어요!`,
         ctas: [
             {
                 type: 'web_url',
@@ -147,12 +147,12 @@ router.get('/:id/update', wrapAsync(async (req, res, next) => {
     FROM tweet_update 
     LEFT JOIN my_map ON (tweet_update.tweet_id=my_map.tweet_id AND my_map.user_id=?)
     WHERE tweet_update.tweet_id=?`, [req.session.user_id, id]);
-    const result = await T.get('statuses/oembed', {
+    const result = await T.get('statuses/show', {
         id, 
-        hide_media: true, 
-        hide_thread: true, 
-        lang: 'ko'
-    }).catch(() => Promise.resolve({ data: { html: '<div id="data" style="line-height: 100px; text-align: center;">삭제되거나 비공개된 트윗입니다</div>' } }));
+        include_entities: true,
+        include_card_uri: false,
+        tweet_mode: 'extended',
+    }).catch(() => Promise.resolve({ data: { id: null } }));
 
     return res.render('tweet', { 
         req,
@@ -161,7 +161,7 @@ router.get('/:id/update', wrapAsync(async (req, res, next) => {
         isRegistered: tweets.length,
         hasUpdate: 1,
         
-        tweetHtml: result.data.html,
+        tweet: result.data,
         id, 
         name: _.get(tweets, '[0].name'),
         address: _.get(tweets, '[0].address'),

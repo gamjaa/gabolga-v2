@@ -46,7 +46,7 @@ const sendMentionInQue = async (userId) => {
     que.forEach(async ({tweet_id, name, road_address, address}) => {
         await db.query('DELETE FROM mention_queue WHERE tweet_id=?', [tweet_id]);
         await postT.post('statuses/update', {
-            status: `@${user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 나만의 지도에 '${name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweet_id}`,
+            status: `@${user.screen_name} ${name}\n${road_address || address}\n#가볼가 에서 나만의 지도🗺️에 '${name}'을(를) 기록해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweet_id}`,
             in_reply_to_status_id: tweet_id
         });
     });

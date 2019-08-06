@@ -78,7 +78,7 @@
           <% } %>
 
           <% if (hasUpdate) { %>
-            <span class="text-danger" title="위 정보는 정확하지 않을 수 있으며, 수정될 수 있습니다. 미리 가볼가 하셔도 수정 내용은 반영됩니다.">⚠️ 현재 장소 수정 요청이 처리 중입니다.</span><br>
+            <span class="text-danger" title="위 정보는 정확하지 않을 수 있으며, 수정될 수 있어요. 미리 가볼가 하셔도 수정 내용은 반영된답니다.">⚠️ 현재 장소 수정 요청이 처리 중이에요! 🧐</span><br>
           <% } %>
   
           <% if (isGabolga) { %>
@@ -111,9 +111,9 @@
           </form>
         </div>
         <ul id="placesList" style="height: 200px; overflow-y: auto;">
-        트윗에 해당하는 장소를 등록해주세요 ;^;<br><br>
-        1. 트윗 내용에 맞는 장소명을 띄어쓰기 없이 검색한다.<br>
-        2. 해당하는 장소를 리스트나 지도에서 클릭한다.
+        트윗에 해당하는 장소를 등록해주세요 😉<br><br>
+        1. 트윗 내용에 맞는 장소명을 띄어쓰기 없이 검색해주세요.<br>
+        2. 해당하는 장소를 리스트나 지도에서 클릭해주세요.
         </ul>
         <div id="pagination"></div>
         <% } %>
@@ -225,7 +225,7 @@
 
       if (total === 0) {
         const itemLi = document.createElement('li');
-        itemLi.innerHTML = `'${keyword}'에 대한 검색 결과가 없습니다.`;
+        itemLi.innerHTML = `앗! '${keyword}'에 대한 검색 결과가 없네요,,, 😢`;
         placesListUl.appendChild(itemLi);
         return;
       }

@@ -2,7 +2,7 @@
 <div class="container">
   <h3>
     <%= req.query.q %>
-    <small class="text-muted">에 대한 검색 결과입니다. (총 <%= rows.length %>개)</small>
+    <small class="text-muted">에 대한 검색 결과예요. 🧐 (총 <%= rows.length %>개)</small>
   </h3>
   <table id="list" class="table table-hover">
   <thead>
@@ -19,7 +19,7 @@
   <tbody>
     <% if (!rows.length) { %>
         <tr>
-            <td colspan="6">검색 결과가 없네요,,,</td>
+            <td colspan="6">앗! 검색 결과가 없네요,,, 😢</td>
         </tr>
     <% } else { 
         rows.forEach((row, index) => { %>

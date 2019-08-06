@@ -66,7 +66,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
         const [rows] = await db.query('SELECT name FROM tweet WHERE tweet_id=?', [tweetId]);
         await sendDM(userId, {
-            text: `${eventObject.user.name} 님의 지도에 '${rows[0].name}'이(가) 기록되었습니다. 확인해보세요!`,
+            text: `${eventObject.user.name} 님의 지도에 '${rows[0].name}'이(가) 기록됐어요. 확인해보세요! 💨💨💨`,
             ctas: [
                 {
                     type: 'web_url',
@@ -109,7 +109,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 [senderId, quickReply, quickReply]);
 
                 await sendDM(senderId, {
-                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! 장소명은 띄어쓰기 없이 붙여주세요.\n예시) 성심당 / 중앙로역 성심당 / 은행동 성심당`,
+                    text: `${req.body.users[senderId].name} 님, 검색 키워드를 전송해주세요! 🔍 장소명은 띄어쓰기 없이 붙여주세요.\n예시) 성심당, 중앙로역 성심당, 은행동 성심당`,
                     quick_reply: {
                         type: 'options',
                         options: [
@@ -130,7 +130,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query('UPDATE users SET search_tweet_id=? WHERE user_id=?', [null, senderId]);
 
                 await sendDM(senderId, {
-                    text: '등록이 취소되었습니다. 나중에 웹으로도 등록하실 수 있습니다!\n해당 트윗을 다시 보내시면 등록 과정을 재시작할 수 있습니다.'
+                    text: '등록 과정이 취소됐어요. 😦 나중에 웹으로도 등록하실 수 있답니다!\n해당 트윗을 다시 보내시면 등록 과정을 재시작할 수 있어요.'
                 });
 
                 return res.status(200).send();
@@ -145,11 +145,11 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
                 
                 await postT.post('statuses/update', {
-                    status: `${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\nhttps://twitter.com/i/status/${tweetId}`
+                    status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\nhttps://twitter.com/i/status/${tweetId}`
                 });
                 
                 await sendDM(senderId, {
-                    text: `등록해주셔서 감사합니다. ${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 기록되었습니다!`,
+                    text: `등록해주셔서 감사해요! 😍 ${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 기록됐어요.`,
                     ctas: [
                         {
                             type: 'web_url',
@@ -162,7 +162,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 if (users[0].is_auto_tweet) {
                     const T = getNewTwit(users[0].oauth_token, users[0].oauth_token_secret);
                     await T.post('statuses/update', {
-                        status: `#가볼가 에 '${name}'을(를) 등록했어요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                        status: `#가볼가 에 '${name}'을(를) 등록했어요! ✌\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
                     });
                 }
                 
@@ -175,7 +175,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [tweetId, senderId]);
                 alreadyGabolgas.forEach(async gabolga => {
                     await sendDM(gabolga.user_id, {
-                        text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                        text: `가볼가 해두셨던 트윗에 장소가 등록됐어요. 🎉 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
                         ctas: [
                             {
                                 type: 'web_url',
@@ -231,8 +231,8 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query('INSERT INTO search_log(tweet_id, keyword) VALUES (?, ?)', [user[0].search_tweet_id, text]);
                 await sendDM(senderId, {
                     text: places.length 
-                        ? `'${text}'(으)로 검색된 장소들입니다. 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있습니다.\n장소 목록이 안 보인다면, 화면 하단의 ☰ 버튼을 눌러주세요.`
-                        : `'${text}'에 대한 검색 결과가 없습니다. 다른 키워드로 다시 검색해주세요. 지역명(구, 동)을 빼고 장소명만으로도 검색해보세요!`,
+                        ? `'${text}'(으)로 검색된 장소들이에요. 🧐 원하는 장소를 선택해주세요. 다른 키워드로 다시 검색할 수도 있답니다.\n장소 목록이 안 보인다면, 화면 하단의 ☰ 버튼을 눌러주세요.`
+                        : `'${text}'에 대한 검색 결과가 없어요. 😢 다른 키워드로 다시 검색해주세요. 지역명(구, 동)을 빼고 장소명만으로도 검색해보세요!`,
                     quick_reply: {
                         type: 'options',
                         options: [
@@ -275,7 +275,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 // 허용 메시지
                 await Mention.setPermission(senderId, false);
                 await sendDM(senderId, {
-                    text: `허락해주셔서 감사합니다, ${req.body.users[senderId].name} 님!\n혹시 생각이 바뀌신다면 언제든지 "멘션거부"라고 보내주시면 됩니다. 불편하게 느끼시지 않도록 노력하겠습니다.\n좋은 하루 보내시길 바랍니다.`,
+                    text: `허락해주셔서 감사합니다, ${req.body.users[senderId].name} 님! 😍\n혹시 생각이 바뀌신다면 언제든지 "멘션거부"라고 보내주시면 됩니다. 불편하게 느끼시지 않도록 노력하겠습니다.\n좋은 하루 보내시길 바랍니다.`,
                     quick_reply: {
                         type: 'options',
                         options: [
@@ -296,7 +296,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
             const q = text.replace(/[.~!*()'"]/g, '');
             const searchBtnLabel = `가볼가 검색: ${q}`;
             await sendDM(senderId, {
-                text: `문의 및 건의사항은 멘션이나 @_gamjaa(DM)로 보내주세요.\n사용법이 궁금하시거나, 가볼가에서 '${q}'(으)로 검색하시려면 아래 버튼을 눌러주세요! 감사합니다.`,
+                text: `문의 및 건의사항은 멘션이나 @_gamjaa(DM)로 보내주세요. 😉\n사용법이 궁금하시거나, 가볼가에서 '${q}'(으)로 검색하시려면 아래 버튼을 눌러주세요! 감사합니다.`,
                 ctas: [
                     {
                         type: 'web_url',
@@ -328,7 +328,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
     
         if (rows.length) {
             await sendDM(senderId, {
-                text: `${req.body.users[senderId].name} 님의 지도에 '${rows[0].name}'이(가) 기록되었습니다. 확인해보세요!`,
+                text: `${req.body.users[senderId].name} 님의 지도에 '${rows[0].name}'이(가) 기록됐어요. 확인해보세요! 💨💨💨`,
                 ctas: [
                     {
                         type: 'web_url',
@@ -339,7 +339,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
             });
         } else {
             await sendDM(senderId, {
-                text: `아직 가볼가에 등록되지 않은 트윗이에요. ${req.body.users[senderId].name} 님께서 직접 등록해보는 건 어떨까요?\n화면 하단의 'DM으로 바로 등록하기'를 눌러 DM으로 등록할 수도 있습니다. 버튼이 안 보인다면, ☰ 버튼을 눌러주세요.`,
+                text: `아직 가볼가에 등록되지 않은 트윗이에요. 😮${req.body.users[senderId].name} 님께서 직접 등록해보는 건 어떨까요?\n화면 하단의 'DM으로 바로 등록하기'를 눌러 DM으로 등록할 수도 있어요. 버튼이 안 보인다면, ☰ 버튼을 눌러주세요.`,
                 ctas: [
                     {
                         type: 'web_url',
@@ -425,7 +425,7 @@ router.post('/', wrapAsync(async (req, res, next) => {
         [userId, screenName, screenName]);
 
         await sendDM(userId, {
-            text: `반갑습니다, ${name} 님! 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${name} 님의 지도에 기록해드릴게요.`,
+            text: `반가워요, ${name} 님! 🤗 팔로우 해주셔서 감사합니다.\n가볼까 하는 장소가 적힌 트윗을 DM으로 보내주세요! ${name} 님의 지도에 기록해드릴게요.`,
             ctas: [
                 {
                     type: 'web_url',
