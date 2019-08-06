@@ -89,6 +89,9 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
     [tweetId, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
 
+    // 웹에서 등록 시에 가볼가 안 돼있으면 가볼가 하기
+    await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)', [req.session.user_id, tweetId]);
+
     await postT.post('statuses/update', {
         status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${req.body.name}\n${req.body.road_address || req.body.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\nhttps://twitter.com/i/status/${tweetId}`
     });
