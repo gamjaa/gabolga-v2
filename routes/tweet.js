@@ -90,7 +90,7 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     [tweetId, req.body.name, req.body.address, req.body.road_address, req.body.phone, req.body.mapx, req.body.mapy, req.session.user_id]);
 
     await postT.post('statuses/update', {
-        status: `${req.body.name}\n${req.body.road_address || req.body.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\nhttps://twitter.com/i/status/${tweetId}`
+        status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${req.body.name}\n${req.body.road_address || req.body.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\nhttps://twitter.com/i/status/${tweetId}`
     });
 
     await Mention.executeSendProcess(tweetId, req.session.user_id, req.body);
