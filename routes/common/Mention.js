@@ -78,6 +78,8 @@ const executeSendProcess = async (tweetId, senderId, placeData, timestamp) => {
         
         if (isDenied == undefined) {
             // 멘션 허용 정보 없음
+            await setPermission(data.user.id_str, null);
+
             // DM 전송
             await sendDM(data.user.id_str, {
                 text: `안녕하세요, ${data.user.name} 님. 인용한 트윗에 관련된 장소를 답글로 달아도 되는지 허락을 구하고자 연락드립니다.\n가볼가는 트위터 맛집 등을 편하게 기록할 수 있도록 만든 비영리 사이트입니다.\n멘션허용, 또는 멘션거부라고 응답해주시면 자동 처리됩니다. 감사합니다.\nhttps://twitter.com/i/status/${tweetId}`,
