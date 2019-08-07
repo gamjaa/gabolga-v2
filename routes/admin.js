@@ -68,7 +68,7 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     const [alreadyGabolgas] = await db.query('SELECT user_id FROM my_map WHERE tweet_id=? AND user_id!=?', [id, row.writer]);
     alreadyGabolgas.forEach(async gabolga => {
         await sendDM(gabolga.user_id, {
-            text: `가볼가 해두셨던 트윗의 장소 정보가 수정됐어요. 😮 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`,
+            text: `😮 앗! 가볼가 해두셨던 트윗의 장소 정보가 수정됐어요.\n지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`,
             ctas: [
                 {
                     type: 'web_url',
@@ -80,7 +80,7 @@ router.put('/tweet/:id', wrapAsync(async (req, res, next) => {
     });
             
     await sendDM(row.writer, {
-        text: `감사합니다! 😍 수정해주신 장소 정보가 반영됐어요. 지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`,
+        text: `감사합니다! 😍 수정해주신 장소 정보가 반영됐어요.\n지금 확인해보세요!\nhttps://gabolga.gamjaa.com/tweet/${id}?edited_at=${timestamp}`,
         ctas: [
             {
                 type: 'web_url',
