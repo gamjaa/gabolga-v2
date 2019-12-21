@@ -76,7 +76,7 @@
 
             tweetDataDiv.style.display = 'block';
 
-            tweetNameH.innerHTML = `<a href="/tweet/<%= req.query.tweet_id %>" target="_blank"><%= tweet.name %></a>`;
+            tweetNameH.innerHTML = `<a href="/tweet/<%= req.query.tweet_id %>"><%= tweet.name %></a>`;
             tweetRoadAddressSpan.textContent = '<%= tweet.road_address %>';
             tweetAddressSpan.textContent = `(<%= tweet.address %>)`;
             tweetPhoneSpan.textContent = '<%= tweet.phone %>';
@@ -127,7 +127,7 @@
 
                     tweetDataDiv.style.display = 'block';
 
-                    tweetNameH.innerHTML = `<a href="/tweet/${row.tweet_id}" target="_blank">${row.name}</a>`;
+                    tweetNameH.innerHTML = `<a href="/tweet/${row.tweet_id}">${row.name}</a>`;
                     tweetRoadAddressSpan.textContent = row.road_address;
                     tweetAddressSpan.textContent = `(${row.address})`;
                     tweetPhoneSpan.textContent = row.phone;
