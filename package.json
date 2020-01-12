@@ -3,26 +3,25 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "NODE_ENV=production forever start forever.json"
+    "start": "NODE_ENV=production node ./bin/www"
   },
   "dependencies": {
-    "config": "^2.0.1",
+    "config": "^2.0.2",
     "crypto-js": "^3.1.9-1",
     "debug": "~2.6.9",
     "ejs": "~2.5.7",
     "express": "~4.16.0",
-    "express-mysql-session": "^2.0.1",
-    "express-session": "^1.15.6",
+    "express-mysql-session": "^2.1.0",
+    "express-session": "^1.17.0",
     "http-errors": "~1.6.2",
-    "lodash": "^4.17.13",
-    "moment": "^2.22.2",
+    "lodash": "^4.17.15",
+    "moment": "^2.24.0",
     "morgan": "~1.9.0",
-    "mysql2": "^1.6.1",
+    "mysql2": "^1.7.0",
     "node-telegram-bot-api": "^0.30.0",
     "oauth": "^0.9.15",
-    "pageres": "^4.5.1",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.5",
+    "request-promise-native": "^1.0.8",
     "twit": "^2.2.11"
   }
 }
