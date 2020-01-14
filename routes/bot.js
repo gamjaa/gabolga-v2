@@ -142,18 +142,6 @@ router.post('/', wrapAsync(async (req, res, next) => {
                 await db.query(`INSERT IGNORE INTO tweet (tweet_id, name, address, road_address, phone, mapx, mapy, writer) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
                 [tweetId, name, address, road_address, phone, mapx, mapy, senderId]);
-
-                
-                await postT.post('statuses/update', {
-                    status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
-                    attachment_url: `https://twitter.com/i/status/${tweetId}`
-                }).catch(e => {
-                    telegramSend([e]);
-                    
-                    return postT.post('statuses/update', {
-                        status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
-                    });
-                });
                 
                 await sendDM(senderId, {
                     text: `등록해주셔서 감사해요! 😍\n${req.body.users[senderId].name} 님의 지도에 '${name}'이(가) 기록됐어요.`,

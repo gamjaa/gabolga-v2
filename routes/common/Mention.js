@@ -65,9 +65,17 @@ const executeSendProcess = async (tweetId, senderId, placeData, timestamp) => {
 
     const isDenied = await getIsDeniedAsync(data.user.id_str);
     if (isDenied) {
-        // 멘션 거부
-        return;
+        // 멘션 거부 시 트윗 링크 제외하고 등록 알림 트윗 게시
+        return postT.post('statuses/update', {
+            status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${placeData.name}\n${placeData.road_address || placeData.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+        });
     }
+
+    // 트윗 링크 포함해 등록 알림 트윗 게시
+    await postT.post('statuses/update', {
+        status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${placeData.name}\n${placeData.road_address || placeData.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+        attachment_url: `https://twitter.com/i/status/${tweetId}`
+    });
 
     if (data.user.id_str !== senderId || data.user.id_str === '62192325') {
         // 본인이 등록하는 거면 멘션 허용 여부 무시
