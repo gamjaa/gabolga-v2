@@ -145,7 +145,14 @@ router.post('/', wrapAsync(async (req, res, next) => {
 
                 
                 await postT.post('statuses/update', {
-                    status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\n\nhttps://twitter.com/i/status/${tweetId}`
+                    status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+                    attachment_url: `https://twitter.com/i/status/${tweetId}`
+                }).catch(e => {
+                    telegramSend([e]);
+                    
+                    return postT.post('statuses/update', {
+                        status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${name}\n${road_address || address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+                    });
                 });
                 
                 await sendDM(senderId, {

@@ -93,7 +93,14 @@ router.put('/:id', wrapAsync(async (req, res, next) => {
     await db.query('INSERT IGNORE INTO my_map (user_id, tweet_id) VALUES (?, ?)', [req.session.user_id, tweetId]);
 
     await postT.post('statuses/update', {
-        status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${req.body.name}\n${req.body.road_address || req.body.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}\nhttps://twitter.com/i/status/${tweetId}`
+        status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${req.body.name}\n${req.body.road_address || req.body.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`,
+        attachment_url: `https://twitter.com/i/status/${tweetId}`
+    }).catch(e => {
+        telegramSend([e]);
+        
+        return postT.post('statuses/update', {
+            status: `#가볼가 에 새로운 장소가 등록됐어요! 😆\n${req.body.name}\n${req.body.road_address || req.body.address}\nhttps://gabolga.gamjaa.com/tweet/${tweetId}`
+        });
     });
 
     await Mention.executeSendProcess(tweetId, req.session.user_id, req.body);
