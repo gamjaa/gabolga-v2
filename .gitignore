@@ -1,4 +1,6 @@
-config/*
+config/*.json
+config/*.js
+public/*.html
 
 # Created by https://www.gitignore.io/api/node,visualstudiocode
 

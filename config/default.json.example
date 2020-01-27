@@ -1,0 +1,50 @@
+{
+    "domain": "http://localhost:3000",
+    "db" : {
+        "host": "localhost",
+        "user": "db_user",
+        "password": "db_pass",
+        "database": "db_name"
+    },
+    "twitter": {
+        "consumer_key": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+        "consumer_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "bot": {
+        "user_id": "111111111111111111",
+        "dm": {
+            "consumer_key": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+            "consumer_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "access_token": "111111111111111111-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "access_token_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "post": {
+            "consumer_key": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+            "consumer_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "access_token": "111111111111111111-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "access_token_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+    },
+    "session": {
+        "key": "session_key",
+        "secret": "session_secret",
+        "resave": false,
+        "saveUninitialized": false,
+        "expiration": 604800000,
+        "cookie": {
+            "maxAge": 604800000
+        }
+    },
+    "naver": {
+        "id": "xxxxxxxxxxxxxxxxxxxx",
+        "secret": "xxxxxxxxxx"
+    },
+    "ncloud": {
+        "id": "xxxxxxxxxx",
+        "secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "telegram": {
+        "chat_id": 111111111,
+        "token": "111111111:xxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxx"
+    }
+}
