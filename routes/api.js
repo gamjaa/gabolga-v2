@@ -72,9 +72,9 @@ router.get('/thumb', wrapAsync(async (req, res, next) => {
         qs: {
             crs: 'NHN:128',
             center: `${req.query.mapx},${req.query.mapy}`,
-            level: 12,
-            w: 505,
-            h: 253,
+            level: 15,
+            w: 560,
+            h: 315,
             scale: 1,
             markers: `pos:${req.query.mapx} ${req.query.mapy}`,
             ClientID: ncloud.id

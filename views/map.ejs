@@ -44,7 +44,9 @@
     new Clipboard('.copy');
     const originalUrl = `<%= hostname %><%= req.baseUrl %><%= req.path %>`;
 
-    const map = new naver.maps.Map(mapDiv);
+    const map = new naver.maps.Map(mapDiv, {
+        useStyleMap: true,
+    });
 
     const isAlreadyExistMarker = (name, position) => {
         return markers.some(marker => {

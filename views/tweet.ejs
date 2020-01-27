@@ -138,7 +138,7 @@
   new Clipboard('.copy');
   const map = new naver.maps.Map(mapDiv, {
     center: new naver.maps.LatLng(point.lat() + 0.002, point.lng()),
-    level: 3
+    useStyleMap: true,
   });
   const marker = new naver.maps.Marker({
     map, position: new naver.maps.LatLng(point.lat(), point.lng())
