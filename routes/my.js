@@ -10,31 +10,31 @@ router.get('/', function(req, res, next) {
     return res.redirect('/my/map');
 });
 
+const getTweetData = async (req) => {
+    const [tweets] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, mapx, mapy 
+    FROM (SELECT * FROM my_map WHERE user_id=?) AS my_map
+    JOIN tweet ON my_map.tweet_id=tweet.tweet_id
+    WHERE my_map.tweet_id=?`, [req.session.user_id, req.query.tweet_id]);
+    if (!tweets.length) {
+        return null;
+    }
+
+    return tweets[0];
+};
+
 // GET /my/map
 router.get('/map', wrapAsync(async (req, res, next) => {
     if (!req.session.isLogin) {
         return res.redirect(`/login?refer=${req.originalUrl}`);
     }
 
-    const getTweetData = async () => {
-        const [tweets] = await db.query(`SELECT tweet.tweet_id, name, address, road_address, phone, mapx, mapy 
-        FROM (SELECT * FROM my_map WHERE user_id=?) AS my_map
-        JOIN tweet ON my_map.tweet_id=tweet.tweet_id
-        WHERE my_map.tweet_id=?`, [req.session.user_id, req.query.tweet_id]);
-        if (!tweets.length) {
-            return null;
-        }
-
-        return tweets[0];
-    };
-
     const [unregTweets] = await db.query(`SELECT COUNT(*) AS count
     FROM (SELECT * FROM my_map WHERE user_id=?) AS my_map
     LEFT JOIN tweet ON my_map.tweet_id=tweet.tweet_id
     WHERE name IS NULL`, [req.session.user_id]);
 
-    const tweet = req.query.tweet_id ? await getTweetData() : {};
-    if (!tweet) {
+    const tweet = req.query.tweet_id ? await getTweetData(req) : undefined;
+    if (req.query.tweet_id && !tweet) {
         return res.redirect(`/tweet/${req.query.tweet_id}`);
     }
 

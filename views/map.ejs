@@ -57,24 +57,37 @@
 
     const markers = [];
     let currentMarkerIndex = -1;
+    const params = {
+        tweet_id: '<%= req.query.tweet_id %>',
+        lat: '<%= req.query.lat %>',
+        lng: '<%= req.query.lng %>'
+    };
 
-    <% if (tweet.name) { %>
+    if (params.lat) {
+        map.setCenter(params);
+    }
+
+    <% if (req.query.tweet_id) { %>
         const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= tweet.mapx %>, <%= tweet.mapy %>));
+        if (!params.lat) {
+            map.setCenter(position);
+        }
+
         const marker = new naver.maps.Marker({
             position,
             map,
             title: '<%= tweet.name %>'
         });
-        map.setCenter(position);
         markers.push(marker);
         const click = () => {
-            history.replaceState(null, null, `${originalUrl}?tweet_id=<%= req.query.tweet_id %>`);
+            params.tweet_id = '<%= req.query.tweet_id %>';
+            updateCurrentUrl(params);
+
             if (currentMarkerIndex >= 0) {
                 markers[currentMarkerIndex].setIcon();
             }
             marker.setIcon('/img/pin_over.png');
             currentMarkerIndex = 0;
-            map.panTo(position);
 
             tweetDataDiv.style.display = 'block';
 
@@ -118,8 +131,10 @@
                 markers.push(marker);
                 const index = markers.length - 1;
 
-                naver.maps.Event.addListener(marker, "click", function(e) {
-                    history.replaceState(null, null, `${originalUrl}?tweet_id=${row.tweet_id}`);
+                naver.maps.Event.addListener(marker, "click", function(e) {                    
+                    params.tweet_id = row.tweet_id;
+                    updateCurrentUrl(params);
+
                     if (currentMarkerIndex >= 0) {
                         markers[currentMarkerIndex].setIcon();
                     }
@@ -147,11 +162,10 @@
         });
     };
 
-    naver.maps.Event.addListener(map, 'dragstart', function(e) {
-        map.setCenter(map.getCenter());
-    });
     naver.maps.Event.addListener(map, 'click', function(e) {
-        history.replaceState(null, null, originalUrl);
+        params.tweet_id = undefined;
+        updateCurrentUrl(params);
+
         tweetDataDiv.style.display = 'none';
         if (currentMarkerIndex >= 0) {
             markers[currentMarkerIndex].setIcon();
@@ -159,6 +173,11 @@
         }
     });
     naver.maps.Event.addListener(map, 'idle', function(e) {
+        const center = map.getCenter();
+        params.lat = center.lat();
+        params.lng = center.lng();
+        updateCurrentUrl(params);
+
         drawMarkers();
     });
 
@@ -183,6 +202,19 @@
             }
         };
         http.send();
+    }
+    
+    function updateCurrentUrl(params) {
+        let paramsString = '';
+        if (params.tweet_id) {
+            paramsString += `tweet_id=${params.tweet_id}`;
+        }
+        if (params.lat) {
+            const centerParam = `lat=${params.lat}&lng=${params.lng}`;
+            paramsString += paramsString ? `&${centerParam}` : centerParam;
+        }
+
+        history.replaceState(null, null, originalUrl + `?${paramsString}`);
     }
 </script>
 <%- include('footer') %>
