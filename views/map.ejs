@@ -44,9 +44,32 @@
     new Clipboard('.copy');
     const originalUrl = `<%= hostname %><%= req.baseUrl %><%= req.path %>`;
 
-    const map = new naver.maps.Map(mapDiv, {
+    const params = {
+        tweet_id: '<%= req.query.tweet_id %>',
+        lat: '<%= req.query.lat %>',
+        lng: '<%= req.query.lng %>',
+        zoom: <%= parseInt(req.query.zoom) || 17 %>
+    };
+
+    const mapOptions = {
         useStyleMap: true,
-    });
+    };
+    <% if (req.query.tweet_id) { %>
+        const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= tweet.mapx %>, <%= tweet.mapy %>));
+        Object.assign(mapOptions, {
+            center: position,
+            zoom: params.zoom
+        });
+    <% } else { %>
+        if (params.lat) {
+            Object.assign(mapOptions, {
+                center: params,
+                zoom: params.zoom
+            });
+        }
+    <% } %>
+    
+    const map = new naver.maps.Map(mapDiv, mapOptions);
 
     const isAlreadyExistMarker = (name, position) => {
         return markers.some(marker => {
@@ -57,22 +80,8 @@
 
     const markers = [];
     let currentMarkerIndex = -1;
-    const params = {
-        tweet_id: '<%= req.query.tweet_id %>',
-        lat: '<%= req.query.lat %>',
-        lng: '<%= req.query.lng %>'
-    };
-
-    if (params.lat) {
-        map.setCenter(params);
-    }
 
     <% if (req.query.tweet_id) { %>
-        const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= tweet.mapx %>, <%= tweet.mapy %>));
-        if (!params.lat) {
-            map.setCenter(position);
-        }
-
         const marker = new naver.maps.Marker({
             position,
             map,
@@ -176,6 +185,7 @@
         const center = map.getCenter();
         params.lat = center.lat();
         params.lng = center.lng();
+        params.zoom = map.getZoom();
         updateCurrentUrl(params);
 
         drawMarkers();
@@ -210,7 +220,7 @@
             paramsString += `tweet_id=${params.tweet_id}`;
         }
         if (params.lat) {
-            const centerParam = `lat=${params.lat}&lng=${params.lng}`;
+            const centerParam = `lat=${params.lat}&lng=${params.lng}&zoom=${params.zoom}`;
             paramsString += paramsString ? `&${centerParam}` : centerParam;
         }
 
