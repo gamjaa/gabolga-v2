@@ -23,7 +23,7 @@ body.index h3 {font-weight: 700;}
 #gabolga_rank caption {caption-side: top; text-align: center; font-weight: 600;}
 
 /* 지도 */
-body.include_map {width: 100%; height: 100vh;}
+body.include_map {width: 100%; height: calc(var(--vh, 1vh) * 100); overflow: hidden;}
 body.include_map main {height: calc(100% - 56px); position: relative;}
 #map {width: 100%; height: 100%}
 
@@ -107,6 +107,8 @@ footer a.active svg, footer a:hover svg {color: #007bff;}
 
 @media screen and (min-width: 1000px) {
     .mobile {display: none !important;}
+
+    body.include_map {height: 100vh;}
 
     #navbarNav {display: flex; flex-basis: auto; flex-grow: 1;}
     #navbarNav .navbar-nav {flex-direction: row;}
