@@ -28,11 +28,6 @@ router.get('/map', wrapAsync(async (req, res, next) => {
         return res.redirect(`/login?refer=${req.originalUrl}`);
     }
 
-    const [unregTweets] = await db.query(`SELECT COUNT(*) AS count
-    FROM (SELECT * FROM my_map WHERE user_id=?) AS my_map
-    LEFT JOIN tweet ON my_map.tweet_id=tweet.tweet_id
-    WHERE name IS NULL`, [req.session.user_id]);
-
     const tweet = req.query.tweet_id ? await getTweetData(req) : undefined;
     if (req.query.tweet_id && !tweet) {
         return res.redirect(`/tweet/${req.query.tweet_id}`);
@@ -43,7 +38,7 @@ router.get('/map', wrapAsync(async (req, res, next) => {
         title: '내 지도',
         hostname,
         tweet,
-        unregTweetsCount: unregTweets[0].count,
+        isMyMapPage: true
     });
 }));
 

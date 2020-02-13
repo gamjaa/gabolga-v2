@@ -9,9 +9,9 @@
     <tr>
       <th>#</th>
       <th onclick="order('name')">이름</th>
-      <th class="mobile" onclick="order('address')">주소</th>
-      <th class="mobile" onclick="order('phone')">전화번호</th>
-      <th class="mobile" onclick="order('add_time')">추가일</th>
+      <th class="pc" onclick="order('address')">주소</th>
+      <th class="pc" onclick="order('phone')">전화번호</th>
+      <th class="pc" onclick="order('add_time')">추가일</th>
       <th>-</th>
       <script>
         const orderBy = '<%= req.query.order_by || 'address' %>';
@@ -40,21 +40,21 @@
                 <th onclick="link('<%= row.tweet_id %>')" scope="row"><%= index +1 %></th>
                 <% if (!row.name) { %>
                     <td class="text-muted" onclick="link('<%= row.tweet_id %>')">미등록된 장소</td>
-                    <td class="mobile text-muted" onclick="link('<%= row.tweet_id %>')">장소 정보를 등록해주세요 ;^;</td>
-                    <td class="mobile text-muted" onclick="link('<%= row.tweet_id %>')">-</td>
+                    <td class="pc text-muted" onclick="link('<%= row.tweet_id %>')">장소 정보를 등록해주세요 ;^;</td>
+                    <td class="pc text-muted" onclick="link('<%= row.tweet_id %>')">-</td>
                 <% } else { %>
                     <td onclick="link('<%= row.tweet_id %>')"><%= row.name %></td>
                     <% if (row.road_address) { %>
-                        <td class="mobile" onclick="link('<%= row.tweet_id %>')">
+                        <td class="pc" onclick="link('<%= row.tweet_id %>')">
                             <%= row.road_address %><br>
                             <span class="text-muted">(<%= row.address %>)</span>
                         </td>
                     <% } else { %>
-                        <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.address %></td>
+                        <td class="pc" onclick="link('<%= row.tweet_id %>')"><%= row.address %></td>
                     <% } %>
-                    <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= row.phone || '-' %></td>
+                    <td class="pc" onclick="link('<%= row.tweet_id %>')"><%= row.phone || '-' %></td>
                     <% } %>
-                <td class="mobile" onclick="link('<%= row.tweet_id %>')"><%= moment(row.add_time).format('YY/MM/DD') %></td>
+                <td class="pc" onclick="link('<%= row.tweet_id %>')"><%= moment(row.add_time).format('YY/MM/DD') %></td>
                 <td><button id="<%= row.tweet_id %>" class="btn btn-danger list_btn" onclick="gabolga('<%= row.tweet_id %>')">가볼가 취소</button></td>
             </tr>
         <% })

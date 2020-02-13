@@ -56,6 +56,17 @@
         </div>
     </form>
 
+    <hr>
+
+    <div class="form-group row">
+        <label class="col-sm-2 control-label"><%= req.session.screen_name %> 님의 계정</label>
+        <div class="col-sm-10">
+            <button class="btn btn-info" onclick="location.href = '/logout'">로그아웃</button>
+            <small id="helpBlock" class="form-text text-muted">가볼가에서 로그아웃 합니다.</small>
+        </div>
+    </div>
+    
+
     <% if (req.session.user_id === '62192325') { %>
         <h3>관리자 메뉴</h3>
         <div class="input-group">
@@ -92,7 +103,7 @@
         <a href="/admin/tweet">트윗 수정 요청 목록</a>
     <% } %>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.4/js/bootstrap-switch.min.js"></script>
+<script src="/js/bootstrap-switch.min.js"></script>
 <script>
     $("[name='is_auto_tweet']").bootstrapSwitch();
     $("[name='is_anonymous']").bootstrapSwitch();

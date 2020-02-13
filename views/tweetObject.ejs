@@ -1,32 +1,35 @@
-<div id="tweet" onclick="location.href = '<%= link %>'">
-  <% if (!tweet.id) { %>
-    <div style="line-height: 100px; text-align: center;">삭제되거나 비공개된 트윗이에요 😢</div>
-  <% } else { %>
-    <img src="<%= tweet.user.profile_image_url_https %>" style="float: left; margin-right: 5px; border-radius: 50%;">
-    <div style="margin-left: 60px;">
-      <div style="margin-bottom: 10px;">
-        <b class="text_ellipsis inline-block"><%= tweet.user.name %></b> 
-        <br><small class="gray">@<%= tweet.user.screen_name %></small> · 
-        <small id="tweet_date" class="gray"></small>
-        <script>
-          const tweetDate = new Date('<%= tweet.created_at %>');
-          const tweetDateSpan = document.getElementById('tweet_date');
-          tweetDateSpan.innerText = `${tweetDate.getFullYear()}년 ${tweetDate.getMonth()+1}월 ${tweetDate.getDate()}일 ${tweetDate.getHours()}:${tweetDate.getMinutes()}`;
-        </script>
-      </div>
+<div class="tweet popup popover bs-popover-top" id="<%= id %>" onclick="location.href = '<%= tweet.id ? `https://twitter.com/i/status/${tweet.id_str}` : '#' %>'">
+  <article>
+    <% if (!tweet.id) { %>
+      <div style="line-height: 100px; text-align: center;">삭제되거나 비공개된 트윗이에요 😢</div>
+    <% } else { %>
+      <img src="<%= tweet.user.profile_image_url_https %>" style="float: left; margin-right: 5px; border-radius: 50%;">
+      <div style="margin-left: 60px;">
+        <div style="margin-bottom: 10px;">
+          <b class="text_ellipsis inline-block"><%= tweet.user.name %></b> 
+          <br><small class="gray">@<%= tweet.user.screen_name %></small> · 
+          <small id="tweet_date" class="gray"></small>
+          <script>
+            const tweetDate = new Date('<%= tweet.created_at %>');
+            const tweetDateSpan = document.getElementById('tweet_date');
+            tweetDateSpan.innerText = `${tweetDate.getFullYear()}년 ${tweetDate.getMonth()+1}월 ${tweetDate.getDate()}일 ${tweetDate.getHours()}:${tweetDate.getMinutes()}`;
+          </script>
+        </div>
 
-      <%- tweet.full_text.slice(tweet.display_text_range[0], tweet.display_text_range[1]).replace(/\n/g, '<br>') %>
+        <%- tweet.full_text.slice(tweet.display_text_range[0], tweet.display_text_range[1]).replace(/\n/g, '<br>') %>
 
-      <% if (tweet.extended_entities) { %>
-      <div style="margin-top: 10px; width: 100%;">
-        <% tweet.extended_entities.media.forEach(media => { %><img src="<%= media.media_url_https %>?name=thumb" style="height: auto; max-width: calc(100% / <%= tweet.extended_entities.media.length %>); max-height: 300px;"><% }); %>
-      </div>
-      <% } %>
+        <% if (tweet.extended_entities) { %>
+        <div style="margin-top: 10px; width: 100%;">
+          <% tweet.extended_entities.media.forEach(media => { %><img src="<%= media.media_url_https %>?name=thumb" style="height: auto; max-width: calc(100% / <%= tweet.extended_entities.media.length %>); max-height: 300px;"><% }); %>
+        </div>
+        <% } %>
 
-      <div style="margin-top: 10px;" class="gray">
-        <div class="inline-block" style="margin-right: 10px;"><svg style="float: left; margin-right: 5px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#6c757d"><path d="M5 10v7h10.797l1.594 2h-14.391v-9h-3l4-5 4 5h-3zm14 4v-7h-10.797l-1.594-2h14.391v9h3l-4 5-4-5h3z"/></svg> <%= tweet.retweet_count %></div>
-        <div class="inline-block" style="margin-right: 10px;"><svg style="float: left; margin-right: 5px; margin-top: 2px" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#6c757d"><path d="M12 9.229c.234-1.12 1.547-6.229 5.382-6.229 2.22 0 4.618 1.551 4.618 5.003 0 3.907-3.627 8.47-10 12.629-6.373-4.159-10-8.722-10-12.629 0-3.484 2.369-5.005 4.577-5.005 3.923 0 5.145 5.126 5.423 6.231zm-12-1.226c0 4.068 3.06 9.481 12 14.997 8.94-5.516 12-10.929 12-14.997 0-7.962-9.648-9.028-12-3.737-2.338-5.262-12-4.27-12 3.737z"/></svg> <%= tweet.favorite_count %></div>
+        <div style="margin-top: 10px;" class="gray">
+          <div class="inline-block" style="margin-right: 10px;"><svg style="float: left; margin-right: 5px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#6c757d"><path d="M5 10v7h10.797l1.594 2h-14.391v-9h-3l4-5 4 5h-3zm14 4v-7h-10.797l-1.594-2h14.391v9h3l-4 5-4-5h3z"/></svg> <%= tweet.retweet_count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") %></div>
+          <div class="inline-block" style="margin-right: 10px;"><svg style="float: left; margin-right: 5px; margin-top: 2px" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#6c757d"><path d="M12 9.229c.234-1.12 1.547-6.229 5.382-6.229 2.22 0 4.618 1.551 4.618 5.003 0 3.907-3.627 8.47-10 12.629-6.373-4.159-10-8.722-10-12.629 0-3.484 2.369-5.005 4.577-5.005 3.923 0 5.145 5.126 5.423 6.231zm-12-1.226c0 4.068 3.06 9.481 12 14.997 8.94-5.516 12-10.929 12-14.997 0-7.962-9.648-9.028-12-3.737-2.338-5.262-12-4.27-12 3.737z"/></svg> <%= tweet.favorite_count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") %></div>
+        </div>
       </div>
-    </div>
-  <% } %>
+    <% } %>
+  </article>
+  <div class="arrow"></div>
 </div>

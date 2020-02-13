@@ -6,13 +6,13 @@
   <title><%= title || '미등록된 장소' %> :: 가볼가</title>
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.4/css/bootstrap3/bootstrap-switch.min.css">
-  <link rel="stylesheet" href="/css/gabolga.css?ver=20190806">
+  <link rel="stylesheet" href="//unpkg.com/bootstrap@4/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/bootstrap-switch.min.css">
+  <link rel="stylesheet" href="/css/gabolga.css?ver=20200214">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <script src="/js/viewport.js"></script>
   <%
-  const desc = req.baseUrl !== '/tweet' ? '가볼까 싶은 트위터 맛집들, \'가볼가\'가 지도로 정리해드립니다!'
+  const desc = req.baseUrl !== '/tweet' ? '가볼까 싶은 트위터 맛집들, \'가볼가\'에서 지도로 정리해보세요!'
     : !isRegistered ? '장소를 등록해주세요' 
     : roadAddress ? `${roadAddress}(${address})` : address;
   %>
@@ -26,30 +26,24 @@
   <meta name="og:description" content="<%= desc %>">
   <meta name="og:image" content="<%- (req.baseUrl === '/tweet' && mapx) ? `https://gabolga.gamjaa.com/api/thumb?mapx=${mapx}&mapy=${mapy}` : 'https://gabolga.gamjaa.com/img/banner.png' %>">
 </head>
-<body <%- (req.path === '/map' || req.baseUrl === '/tweet') ? 'class="include_map"' : '' %>>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<body class="<%= (req.path === '/map' || req.baseUrl === '/tweet') ? 'include_map' : req.originalUrl === '/' ? 'index' : '' %>">
+  <script src="/js/jquery.min.js"></script>
+  <script src='//unpkg.com/popper.js@1/dist/umd/popper.min.js'></script>
+  <script src='//unpkg.com/bootstrap@4/dist/js/bootstrap.min.js'></script>
 
-  <nav class="navbar navbar-light navbar-expand-lg sticky-top" style="background-color: #e3f2fd;">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-    </button>
+  <nav class="navbar navbar-light sticky-top" style="background-color: #e3f2fd;">
+    <a href="/" class="navbar-brand">가볼가</a>
 
-      <a href="/" class="navbar-brand">가볼가</a>
-
-    <div class="collapse navbar-collapse" id="navbarNav">
+    <div class="pc" id="navbarNav">
       <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
         <li class="nav-item <%= req.path === '/map' ? 'active' : '' %>">
           <a class="nav-link <%= req.session.isLogin ? 'text-dark' : '' %>" href="/my/map" title="가볼가 한 장소를 지도로 모아보세요!" onclick="gtag('event', '내지도')"><%= req.session.isLogin ? `${req.session.screen_name} 님의 지도` : '내 지도' %></a>
         </li>
-        <% if (req.session.isLogin) { %>
-          <li class="nav-item <%= req.path === '/list' ? 'active' : '' %>">
-            <a class="nav-link <%= req.session.isLogin ? 'text-dark' : '' %>" href="/my/list" title="가볼가 한 장소를 목록으로 모아보세요!" onclick="gtag('event', '내목록')">(목록으로 보기)</a>
-          </li>
-        <% } %>
+        <li class="nav-item <%= req.path === '/list' ? 'active' : '' %>">
+          <a class="my_list_btn nav-link <%= req.session.isLogin ? 'text-dark' : '' %>" href="/my/list" title="가볼가 한 장소를 목록으로 모아보세요!" onclick="gtag('event', '내목록')" <% if (locals.unregTweetsCount > 0) { %> data-toggle="popover" data-placement="top" data-content="장소가 미등록된 트윗이 <%= locals.unregTweetsCount %>개 있어요. 😢"<% } %>>목록으로 보기<% if (locals.unregTweetsCount > 0) { %> <span class="badge badge-danger"><%= locals.unregTweetsCount %></span><% } %></a>
+        </li>
         <li class="nav-item">
-          <a class="nav-link" href="/random" title="등록된 트윗을 랜덤으로 보여드립니다!" onclick="gtag('event', '랜덤트윗')">랜덤 트윗</a>
+          <a class="nav-link" href="/random" title="등록된 트윗을 랜덤으로 보여드립니다!" onclick="gtag('event', '랜덤트윗')">랜덤 장소</a>
         </li>
         <li class="nav-item <%= req.path === '/about' ? 'active' : '' %>">
             <a class="nav-link <%= req.session.isLogin ? '' : 'text-dark' %>" href="/about" title="가볼가 소개" onclick="gtag('event', '소개')">소개</a>
@@ -57,14 +51,9 @@
         <li class="nav-item <%= req.path === '/guide' ? 'active' : '' %>">
             <a class="nav-link <%= req.session.isLogin ? '' : 'text-dark' %>" href="/guide" title="가볼가 사용 안내" onclick="gtag('event', '사용법')">사용법</a>
         </li>
-        <% if (req.session.isLogin) { %>
-          <li class="nav-item <%= req.path === '/setting' ? 'active' : '' %>">
-            <a class="nav-link" href="/my/setting" title="가볼가 기능 설정" onclick="gtag('event', '설정')">설정</a>
-          </li>
-        <% } %>
       </ul>
 
-      <form action="/api/tweet" class="form-inline">
+      <form action="/api/search" class="form-inline">
         <div class="input-group">
           <input name="url" class="form-control" required minlength="2" placeholder="트윗 링크 / 검색어" aria-label="트윗 링크 / 검색어">
           <div class="input-group-append">
@@ -73,10 +62,17 @@
         </div>
       </form>
     </div>
-  &nbsp;&nbsp;&nbsp;&nbsp;
+  <div>
+  <a href="<%= req.session.isLogin ? '/guide' : '/about' %>" class="fixed_menu mobile"><svg class="bi bi-question" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M10 17a7 7 0 100-14 7 7 0 000 14zm8-7a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+      <path d="M7.25 8.033h1.32c0-.781.458-1.384 1.36-1.384.685 0 1.313.343 1.313 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.007.463h1.307v-.355c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.326 0-2.786.647-2.754 2.533zm1.562 5.516c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+  </svg></a>
   <% if (req.session.isLogin) { %>
-    <button onclick="gtag('event', '로그아웃'); location.href='/logout?refer=<%= req.baseUrl === '/my' ? '/' : req.originalUrl %>'" class="btn btn-outline-success" type="button">로그아웃</button>
-  <% } else { %>
-    <a href="/login?refer=<%= req.originalUrl %>" alt="트위터 계정으로 로그인" onclick="gtag('event', '로그인')"><img src="/img/sign-in-with-twitter-gray.png" alt="Sign in with Twitter"></a>
+    <a href="/my/setting" class="fixed_menu"><svg class="bi bi-gear" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M10.837 3.626c-.246-.835-1.428-.835-1.674 0l-.094.319A1.873 1.873 0 016.377 5.06l-.292-.16c-.764-.415-1.6.42-1.184 1.185l.159.292a1.873 1.873 0 01-1.115 2.692l-.319.094c-.835.246-.835 1.428 0 1.674l.319.094a1.873 1.873 0 011.115 2.693l-.16.291c-.415.764.42 1.6 1.185 1.184l.292-.159a1.873 1.873 0 012.692 1.115l.094.319c.246.835 1.428.835 1.674 0l.094-.319a1.873 1.873 0 012.693-1.115l.291.16c.764.415 1.6-.42 1.184-1.185l-.159-.291a1.873 1.873 0 011.115-2.693l.319-.094c.835-.246.835-1.428 0-1.674l-.319-.094a1.873 1.873 0 01-1.115-2.692l.16-.292c.415-.764-.42-1.6-1.185-1.184l-.291.159a1.873 1.873 0 01-2.693-1.115l-.094-.319zm-2.633-.283c.527-1.79 3.064-1.79 3.592 0l.094.319a.873.873 0 001.255.52l.292-.16c1.64-.892 3.434.901 2.54 2.541l-.159.292a.873.873 0 00.52 1.255l.319.094c1.79.527 1.79 3.064 0 3.592l-.319.094a.873.873 0 00-.52 1.255l.16.292c.893 1.64-.902 3.434-2.541 2.54l-.292-.159a.873.873 0 00-1.255.52l-.094.319c-.527 1.79-3.065 1.79-3.592 0l-.094-.319a.873.873 0 00-1.255-.52l-.292.16c-1.64.893-3.433-.902-2.54-2.541l.159-.292a.873.873 0 00-.52-1.255l-.319-.094c-1.79-.527-1.79-3.065 0-3.592l.319-.094a.873.873 0 00.52-1.255l-.16-.292c-.892-1.64.901-3.433 2.541-2.54l.292.159a.873.873 0 001.255-.52l.094-.319z" clip-rule="evenodd"/>
+        <path fill-rule="evenodd" d="M10 7.754a2.246 2.246 0 100 4.492 2.246 2.246 0 000-4.492zM6.754 10a3.246 3.246 0 116.492 0 3.246 3.246 0 01-6.492 0z" clip-rule="evenodd"/>
+    </svg></a>
   <% } %>
+  </div>
   </nav>
+  <main>

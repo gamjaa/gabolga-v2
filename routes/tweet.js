@@ -10,6 +10,7 @@ const postBotConfig = config.get('bot.post');
 const postT = new require('twit')(postBotConfig);
 const telegramSend = require('./common/telegram');
 const Mention = require('./common/Mention');
+const hostname = require('config').get('domain');
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -34,20 +35,15 @@ router.get('/:id', wrapAsync(async (req, res, next) => {
         WHERE tweet.tweet_id=?`;
     const [tweets] = await db.query(query, [id]);
     const [tweetUpdates] = await db.query('SELECT tweet_id FROM tweet_update WHERE tweet_id=?', [id]);
-    const result = await T.get('statuses/show', {
-        id, 
-        include_entities: true,
-        include_card_uri: false,
-        tweet_mode: 'extended',
-    }).catch(() => Promise.resolve({ data: { id: null } }));
-    return res.render('tweet', { 
+    
+    return res.render('map', { 
         req,
         title: _.get(tweets, '[0].name'),
+        hostname,
         isUpdatePage: 0,
         isRegistered: tweets.length,
         hasUpdate: tweetUpdates.length,
         
-        tweet: result.data,
         id, 
         name: _.get(tweets, '[0].name'),
         address: _.get(tweets, '[0].address'),
@@ -153,9 +149,10 @@ router.get('/:id/update', wrapAsync(async (req, res, next) => {
         tweet_mode: 'extended',
     }).catch(() => Promise.resolve({ data: { id: null } }));
 
-    return res.render('tweet', { 
+    return res.render('map', { 
         req,
         title: '수정 요청',
+        hostname,
         isUpdatePage: 1,
         isRegistered: tweets.length,
         hasUpdate: 1,

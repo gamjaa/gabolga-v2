@@ -6,6 +6,8 @@ const request = require('request-promise-native');
 const db = require('./common/db');
 const wrapAsync = require('./common/wrapAsync');
 const localSearch = require('./common/localSearch');
+const getNewTwit = require('./common/twit');
+const T = getNewTwit();
 
 const statusIdRegex = /status\/([0-9]+)/;
 const idRegex = /^([0-9]+)$/;
@@ -29,16 +31,28 @@ router.get('/map', wrapAsync(async (req, res, next) => {
 }));
 
 // GET /api/tweet
-router.get('/tweet', function(req, res, next) {
+router.get('/tweet/:id', wrapAsync(async (req, res, next) => {
+    const {data} = await T.get('statuses/show', {
+        id: req.params.id, 
+        include_entities: true,
+        include_card_uri: false,
+        tweet_mode: 'extended',
+    }).catch(() => Promise.resolve({ data: { id: null } }));
+    
+    return res.render('tweetObject', {id: req.params.id, tweet: data});
+}));
+
+// GET /api/search
+router.get('/search', function(req, res, next) {
     if (idRegex.test(req.query.url)) {
         return res.redirect(`/tweet/${req.query.url}`);
     }
     
-    if (!statusIdRegex.test(req.query.url)) {
-        return res.redirect(`/search?q=${req.query.url}`);
+    if (statusIdRegex.test(req.query.url)) {
+        return res.redirect(`/tweet/${statusIdRegex.exec(req.query.url)[1]}`);
     }
-
-    return res.redirect(`/tweet/${statusIdRegex.exec(req.query.url)[1]}`);
+    
+    return res.redirect(`/search?q=${req.query.url}`);
 });
 
 // GET /api/gabolga/:id

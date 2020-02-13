@@ -1,195 +1,563 @@
 <%- include('header') %>
-<script src="/js/clipboard.min.js"></script>
 <div id="map">
+    <% if (locals.isMyMapPage) { %>
     <div id="now_pos">
         <a onclick="getGeo();"><img src="/img/iconmonstr-crosshair-9-2402.png" width="50px" height="50px"></a>
     </div>
-
-    <% if (unregTweetsCount > 0) { %>
-        <button id="unreg_tweets_count" class="btn btn-danger" onclick="location.href = '/my/list'">
-            장소가 미등록된 트윗이 <%= unregTweetsCount %>개 있어요. 😢
-        </div>
     <% } %>
 
-    <div id="tweet_data">
-        <script>
-            function openRoute(e) {
-                window.open(e.getAttribute('data-value'), '_blank');
-            }
-        </script>
-        <div id="route_link">
-            <a herf="#" title="카카오맵(다음 지도) 길찾기" id="route_kakao" onclick="gtag('event', '다음길찾기'); openRoute(this)"><img src="/img/kakaomap_icon.png"></a>
-            <a herf="#" title="네이버 지도 길찾기" id="route_naver" onclick="gtag('event', '네이버길찾기'); openRoute(this)"><img src="/img/navermap_icon.png"></a>
+    <div id="map_pop" class="popup" <%- locals.isMyMapPage ? 'style="display: none"' : '' %>>
+        <div id="data">
+            <% if (locals.isMyMapPage || locals.isRegistered) { %>
+                <%# 내 지도이거나, 등록된 트윗 페이지 %>
+                <h3 id="tweet_name" class="copy" data-clipboard-text="<%= locals.name %>" data-toggle="popover" data-placement="right" data-content="복사됨"><%= locals.name %></h3>
+                
+                <% if (locals.isMyMapPage || locals.roadAddress) { %>
+                <span id="tweet_road_address" class="copy" data-clipboard-text="<%= locals.roadAddress %>" data-toggle="popover" data-placement="right" data-content="복사됨"><%= locals.roadAddress %></span>
+                <% } %>
+                    
+                <span id="tweet_address" class="copy <%= !locals.isMyMapPage || locals.roadAddress ? 'text-muted' : '' %>" data-clipboard-text="<%= locals.address %>" data-toggle="popover" data-placement="right" data-content="복사됨"><%= locals.address %></span>
+                    
+                <% if (locals.isMyMapPage || locals.phone) { %>
+                <a id="tweet_phone" href="tel:<%= locals.phone %>"><%= locals.phone %></a>
+                <% } %>
+                        
+                <% if (locals.hasUpdate) { %>
+                <span class="text-danger" title="위 정보는 정확하지 않을 수 있으며, 수정될 수 있어요. 미리 가볼가 하셔도 수정 내용은 반영된답니다.">⚠️ 현재 장소 수정 요청이 처리 중이에요! 🧐</span><br>
+                <% } %>
+
+                <% if (locals.isRegistered) { %>
+                    <button id="go_my_map_btn" class="btn btn-primary" onclick="location.replace('/my/map?tweet_id=<%= id %>')" style="margin-top: 10px; float: left; clear: both; display: <%= isGabolga ? 'block' : 'none' %>">내 지도에서 보기</button>
+                <% } %>
+            <% } else { %>
+                <%# 미등록 트윗 페이지 %>
+                <h3>미등록된 트윗</h3>
+                <span><%= !req.session.isLogin ? '로그인해서 ' : '' %>장소를 등록해주세요!</span>
+                <% if (req.session.isLogin) { %>
+                    <%# 로그인 시 장소 등록 %>
+                    <div style="margin-top: 10px; max-width: 100%; background-color: #fff; border-radius: 10px; float: left; clear: both;">
+                    <div class="option">
+                        <form onsubmit="searchPlaces(); return false;">
+                        <div class="input-group">
+                            <input type="text" id="keyword" placeholder="장소명" size="15" class="form-control">
+                            <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">검색</button>
+                            </div>
+                        </div>
+                        </form>
+                    </div>
+                    <ul id="placesList" style="height: 200px; overflow-y: auto; padding: 10px;">
+                        트윗에 해당하는 장소를 등록해주세요 😉<br><br>
+                        1. 트윗 내용에 맞는 장소명을 띄어쓰기 없이 검색해주세요.<br>
+                        2. 해당하는 장소를 리스트나 지도에서 클릭해주세요.
+                    </ul>
+                    <div id="pagination"></div>
+                    </div>
+                <% } else { %>
+                    <%# 비로그인 시 로그인 버튼 %>
+                    <button class="btn btn-primary" onclick="location.href = '/login?refer=<%= req.originalUrl %>'" style="margin-top: 10px; float: left; clear: both;">트위터 계정으로 로그인</button>
+                <% } %>
+            <% } %>
         </div>
-        <h3 id="tweet_name" class="text_ellipsis" title="트윗 페이지에서 자세히 보기"></h3>
-        <span id="tweet_road_address" class="text_ellipsis"></span> <button id="tweet_road_address_btn" class="btn btn-link btn-sm copy">복사</button><br>
-        <span id="tweet_address" class="text-muted text_ellipsis"></span> <button id="tweet_address_btn" class="btn btn-link btn-sm copy">복사</button><br>
-        <span id="tweet_phone" class="text_ellipsis"></span> <button id="tweet_phone_btn" class="btn btn-link btn-sm copy">복사</button>
     </div>
+
+    <a href="#" id="tweet_switch" class="bottom_btn btn btn-light" data-tweet-id="<%= locals.id %>" onclick="toggleTweet()">
+    <svg class="bi" xmlns="http://www.w3.org/2000/svg" fill="currentcolor" viewBox="0 0 24 24"><path d="M22.295 13.047c-.047 1.527.851 3.718 1.661 5.312-1.875-.338-4.429-1.032-5.991-1.768.061-.751.05-1.444-.185-2.404.86.531 1.212.76 2.871 1.29-.418-1.515-.364-2.183-.333-3.183.834-1 1.683-2.07 1.683-3.943-.001-3.501-3.59-6.351-8.001-6.351-4.035 0-7.367 2.387-7.908 5.473-.721.122-1.414.31-2.071.559.205-4.683 4.847-8.032 9.979-8.032 5.281 0 10 3.526 10 8.352 0 1.71-.615 3.39-1.705 4.695zm-6.295 2.945c0 3.422-3.218 6.652-7.941 6.652-.854 0-1.761-.106-2.704-.336-1.118.685-3.585 1.377-5.319 1.692.648-1.277 1.366-3.029 1.329-4.252-.872-1.042-1.365-2.387-1.365-3.756 0-3.86 3.775-6.681 8-6.681 4.199 0 8 2.802 8 6.681zm-6.609 3.008l-.797-1h-2.594v-3h1l-1.5-2-1.5 2h1v4h4.391zm2.609-2h-1v-4h-4.422l.797 1h2.625v3h-1l1.5 2 1.5-2z"/></svg>
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+    </a>
+
+    <% if (locals.isMyMapPage || locals.isRegistered) { %>
+    <a href="#" id="gabolga_btn" class="bottom_btn btn btn-light <%= locals.isGabolga ? 'on' : '' %>" data-placement="top" onclick="gabolga()">
+    <svg class="bi bi-heart" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M10 4.748l-.717-.737C7.6 2.281 4.514 2.878 3.4 5.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.837-3.362.314-4.385-1.114-2.175-4.2-2.773-5.883-1.043L10 4.748zM10 17C-5.333 6.868 5.279-1.04 9.824 3.143c.06.055.119.112.176.171a3.12 3.12 0 01.176-.17C14.72-1.042 25.333 6.867 10 17z" clip-rule="evenodd"/>
+    </svg>
+    <svg class="bi bi-heart-fill" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" d="M10 3.314C14.438-1.248 25.534 6.735 10 17-5.534 6.736 5.562-1.248 10 3.314z" clip-rule="evenodd"/>
+    </svg>
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+    </a>
+    <a href="#" id="more_btn" class="bottom_btn btn btn-light" onclick="now = document.getElementById('more_popup').style.display; document.getElementById('more_popup').style.display = now === 'block' ? 'none' : 'block';">
+    <svg class="bi bi-three-dots" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M5 11.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" clip-rule="evenodd"/>
+    </svg>
+    </a>
+
+    <div id="more_popup" class="popup popover bs-popover-top" style="display: none;">
+        <main>
+            <a href="#" onclick="location.href = `/tweet/${tweetSwitchBtnEl.dataset.tweetId}/update`">수정 요청</a>
+            <a href="#" id="route_kakao" title="카카오맵(다음 지도) 길찾기" onclick="gtag('event', '다음길찾기'); window.open(this.dataset.url, '_blank')">카카오맵 길찾기</a>
+            <a href="#" id="route_naver" onclick="gtag('event', '네이버길찾기'); window.open(this.dataset.url, '_blank')">네이버 지도 길찾기</a>
+            <a id="kakao-link-btn" href="javascript:;">카카오톡으로 공유</a>
+            <a href="#" id="share_url" class="copy" data-clipboard-text="https://gabolga.gamjaa.com/tweet/<%= locals.id %>" data-toggle="popover" data-placement="top" data-content="복사됨">URL 복사</a>
+        </main>
+        <div class="arrow"></div>
+    </div>
+    <% } %>
 </div>
-<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=uwuqnx1j3m&submodules=geocoder"></script>
+<script type="text/javascript" src="/js/clipboard.min.js?ver=2.0.4"></script>
+<script type="text/javascript" src="//openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=uwuqnx1j3m&submodules=geocoder"></script>
+<script type="text/javascript" src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
 <script>
     const mapDiv = document.getElementById('map');
-    const tweetDataDiv = document.getElementById('tweet_data');
-    const tweetNameH = document.getElementById('tweet_name');
-    const tweetRoadAddressSpan = document.getElementById('tweet_road_address');
-    const tweetAddressSpan = document.getElementById('tweet_address');
-    const tweetPhoneSpan = document.getElementById('tweet_phone');
-    const tweetRoadAddressBtn = document.getElementById('tweet_road_address_btn');
-    const tweetAddressBtn = document.getElementById('tweet_address_btn');
-    const tweetPhoneBtn = document.getElementById('tweet_phone_btn');
-    const routeKakaoA = document.getElementById('route_kakao');
-    const routeNaverA = document.getElementById('route_naver');
+    const mapPopupEl = document.getElementById('map_pop');
+    const tweetNameEl = document.getElementById('tweet_name');
+    const tweetRoadAddressEl = document.getElementById('tweet_road_address');
+    const tweetAddressEl = document.getElementById('tweet_address');
+    const tweetPhoneEl = document.getElementById('tweet_phone');
+    const bottomBtnEls = document.getElementsByClassName('bottom_btn');
+    const popupEls = document.getElementsByClassName('popup');
+    const gabolgaBtnEl = document.getElementById('gabolga_btn');
+    const tweetSwitchBtnEl = document.getElementById('tweet_switch');
+    const goMyMapBtnEl = document.getElementById('go_my_map_btn');
+    const routeKakaoEl = document.getElementById('route_kakao');
+    const routeNaverEl = document.getElementById('route_naver');
+    const shareUrlEl = document.getElementById('share_url');
 
-    new Clipboard('.copy');
+    document.body.scrollTop = 0;
+    new ClipboardJS('.copy');
+    Kakao.init('ccdf52614c4fdbc279d9aa623ba3dc65');
     const originalUrl = `<%= hostname %><%= req.baseUrl %><%= req.path %>`;
-
-    const params = {
-        tweet_id: '<%= req.query.tweet_id %>',
-        lat: '<%= req.query.lat %>',
-        lng: '<%= req.query.lng %>',
-        zoom: <%= parseInt(req.query.zoom) || 17 %>
-    };
 
     const mapOptions = {
         useStyleMap: true,
     };
-    <% if (req.query.tweet_id) { %>
-        const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= tweet.mapx %>, <%= tweet.mapy %>));
-        Object.assign(mapOptions, {
-            center: position,
-            zoom: params.zoom
-        });
-    <% } else { %>
-        if (params.lat) {
+
+    <% if (locals.isRegistered) { %>
+    const point = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= mapx %>, <%= mapy %>));
+    Object.assign(mapOptions, {
+        center: new naver.maps.LatLng(point.lat(), point.lng()),
+    });
+
+    for (el of bottomBtnEls) {
+        el.style.display = 'block';
+    }
+    <% } %>
+
+    <% if (locals.isMyMapPage) { %>
+        const params = {
+            tweet_id: '<%= req.query.tweet_id %>',
+            lat: '<%= req.query.lat %>',
+            lng: '<%= req.query.lng %>',
+            zoom: <%= parseInt(req.query.zoom) || 17 %>
+        };
+
+        <% if (req.query.tweet_id) { %>
+            const firstPosition = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(<%= tweet.mapx %>, <%= tweet.mapy %>));
             Object.assign(mapOptions, {
-                center: params,
+                center: firstPosition,
                 zoom: params.zoom
             });
-        }
+        <% } else { %>
+            if (params.lat) {
+                Object.assign(mapOptions, {
+                    center: params,
+                    zoom: params.zoom
+                });
+            }
+        <% } %>
     <% } %>
     
     const map = new naver.maps.Map(mapDiv, mapOptions);
-
-    const isAlreadyExistMarker = (name, position) => {
-        return markers.some(marker => {
-            const markerPos = marker.getPosition();
-            return markerPos.x === position.x && markerPos.y === position.y && marker.getTitle() === name;
-        });
-    };
-
     const markers = [];
+    const infowindows = [];
+    const searchedItems = [];
     let currentMarkerIndex = -1;
 
-    <% if (req.query.tweet_id) { %>
-        const marker = new naver.maps.Marker({
-            position,
-            map,
-            title: '<%= tweet.name %>'
-        });
-        markers.push(marker);
-        const click = () => {
-            params.tweet_id = '<%= req.query.tweet_id %>';
+    <% if (locals.isMyMapPage) { %>
+        <%# 내 지도 %>
+        const isAlreadyExistMarker = (name, position) => {
+            return markers.some(marker => {
+                const markerPos = marker.getPosition();
+                return markerPos.x === position.x && markerPos.y === position.y && marker.getTitle() === name;
+            });
+        };
+
+        const drawMarkers = (isFirstDraw) => {
+            const bounds = map.getBounds();
+            const min = naver.maps.TransCoord.fromLatLngToTM128(bounds.getMin());
+            const max = naver.maps.TransCoord.fromLatLngToTM128(bounds.getMax());
+            httpGet(`/api/map?minY=${min.y}&maxY=${max.y}&minX=${min.x}&maxX=${max.x}`, (rows) => {
+                rows.sort((a, b) => {
+                    return b.mapy - a.mapy;
+                });
+                
+                rows.forEach(row => {
+                    const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(row.mapx, row.mapy));
+                    
+                    if (isAlreadyExistMarker(row.name, position)) {
+                        return;
+                    }
+                    
+                    const marker = new naver.maps.Marker({
+                        position,
+                        map,
+                        title: row.name
+                    });
+
+                    markers.push(marker);
+                    const index = markers.length - 1;
+
+                    const onClick = e => {
+                        params.tweet_id = row.tweet_id;
+                        updateCurrentUrl(params);
+
+                        if (currentMarkerIndex >= 0) {
+                            markers[currentMarkerIndex].setIcon();
+                        }
+                        marker.setIcon('/img/pin_over.png');
+                        currentMarkerIndex = index;
+
+                        closeTweet();
+                        mapPopupEl.style.display = 'block';
+                        for (el of bottomBtnEls) {
+                            el.style.display = 'block';
+                        }
+                        gabolgaBtnEl.classList.add('on');
+                        tweetSwitchBtnEl.dataset.tweetId = row.tweet_id;
+                        gabolgaBtnEl.dataset.markerIndex = index;
+
+                        tweetNameEl.textContent = row.name;
+                        tweetNameEl.dataset.clipboardText = row.name;
+
+                        if (row.road_address) {
+                            tweetRoadAddressEl.textContent = row.road_address;
+                            tweetRoadAddressEl.dataset.clipboardText = row.road_address;
+                        } else {
+                            tweetRoadAddressEl.style.display = 'none';
+                        }
+
+                        if (row.address) {
+                            tweetAddressEl.textContent = `(${row.address})`;
+                            tweetAddressEl.dataset.clipboardText = row.address;
+                        } else {
+                            tweetAddressEl.style.display = 'none';
+                        }
+
+                        if (row.phone) {
+                            tweetPhoneEl.textContent = row.phone;
+                            tweetPhoneEl.href = `tel:${row.phone}`;
+                        } else {
+                            tweetPhoneEl.style.display = 'none';
+                        }
+
+                        routeKakaoEl.dataset.url = `http://map.daum.net/link/to/${row.name},${position.lat()},${position.lng()}`;
+                        routeNaverEl.dataset.url = `https://map.naver.com/?menu=route&etext=${row.name}&elat=${position.lat()}&elng=${position.lng()}`;
+                        shareUrlEl.dataset.clipboardText = `https://gabolga.gamjaa.com/tweet/${row.tweet_id}`;
+
+                        setKakaoShare(row.mapx, row.mapy);
+                    };
+
+
+                    <% if (req.query.tweet_id) { %>
+                    if (isFirstDraw && 
+                        marker.getTitle() === '<%= tweet.name %>' && firstPosition.x === position.x && firstPosition.y === position.y) {
+                        onClick();
+                    }
+                    <% } %>
+
+                    naver.maps.Event.addListener(marker, "click", onClick);
+                });
+            });
+        };
+
+        naver.maps.Event.addListener(map, 'click', function(e) {
+            params.tweet_id = undefined;
             updateCurrentUrl(params);
+
+            for (el of [...popupEls, ...bottomBtnEls]) {
+                el.style.display = 'none'
+            }
+            closeTweet();
 
             if (currentMarkerIndex >= 0) {
                 markers[currentMarkerIndex].setIcon();
+                currentMarkerIndex = -1;
             }
-            marker.setIcon('/img/pin_over.png');
-            currentMarkerIndex = 0;
+        });
+        naver.maps.Event.addListener(map, 'idle', function(e) {
+            const center = map.getCenter();
+            params.lat = center.lat();
+            params.lng = center.lng();
+            params.zoom = map.getZoom();
+            updateCurrentUrl(params);
 
-            tweetDataDiv.style.display = 'block';
+            drawMarkers();
+        });
 
-            tweetNameH.innerHTML = `<a href="/tweet/<%= req.query.tweet_id %>"><%= tweet.name %></a>`;
-            tweetRoadAddressSpan.textContent = '<%= tweet.road_address %>';
-            tweetAddressSpan.textContent = `(<%= tweet.address %>)`;
-            tweetPhoneSpan.textContent = '<%= tweet.phone %>';
+        drawMarkers(true);
+    <% } else if (locals.isRegistered) { %>
+        <%# 등록된 트윗 %>
+        const marker = new naver.maps.Marker({
+            map, position: new naver.maps.LatLng(point.lat(), point.lng())
+        });
+        routeKakaoEl.dataset.url = `http://map.daum.net/link/to/${tweetNameEl.textContent},${point.lat()},${point.lng()}`;
+        routeNaverEl.dataset.url = `https://map.naver.com/?menu=route&etext=${tweetNameEl.textContent}&elat=${point.lat()}&elng=${point.lng()}`;
+        setKakaoShare('<%= mapx %>', '<%= mapy %>');
 
-            tweetRoadAddressBtn.style.display = '<%= tweet.road_address ? 'inline-block' : 'none' %>';
-            tweetAddressBtn.style.display = '<%= tweet.address ? 'inline-block' : 'none' %>';
-            tweetPhoneBtn.style.display = '<%= tweet.phone ? 'inline-block' : 'none' %>';
-            tweetRoadAddressBtn.setAttribute('data-clipboard-text', '<%= tweet.road_address %>');
-            tweetAddressBtn.setAttribute('data-clipboard-text', '<%= tweet.address %>');
-            tweetPhoneBtn.setAttribute('data-clipboard-text', '<%= tweet.phone %>');
+        <% if (!req.session.isLogin) { %>
+            <%# 비로그인 시 홍보 문구 %>
+            $('#gabolga_btn').popover({
+                content: '로그인해서 내 지도에 추가해보세요!',
+                trigger: 'manual'
+            }).popover('show');
+            setTimeout(() => $('#gabolga_btn').popover('hide'), 2000);
+        <% } %>
+    <% } else { %>
+        <%# 미등록된 트윗 %>
+        tweetSwitchBtnEl.style.display = 'block';
 
-            routeKakaoA.setAttribute('data-value', `http://map.daum.net/link/to/<%= tweet.name %>,${position.lat()},${position.lng()}`);
-            routeNaverA.setAttribute('data-value', `https://map.naver.com/?menu=route&etext=<%= tweet.name %>&elat=${position.lat()}&elng=${position.lng()}`);
-        };
-        click();
-        naver.maps.Event.addListener(marker, "click", click);
-    <% } %>
-
-    const drawMarkers = () => {
-        const bounds = map.getBounds();
-        const min = naver.maps.TransCoord.fromLatLngToTM128(bounds.getMin());
-        const max = naver.maps.TransCoord.fromLatLngToTM128(bounds.getMax());
-        httpGet(`/api/map?minY=${min.y}&maxY=${max.y}&minX=${min.x}&maxX=${max.x}`, (rows) => {
-            rows.forEach(row => {
-                const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(row.mapx, row.mapy));
-                
-                if (isAlreadyExistMarker(row.name, position)) {
-                    return;
+        const putData = (i) => {
+            if (confirm(`'${searchedItems[i].name}'(으)로 등록하시겠습니까?`)) {
+            gtag('event', '장소등록');
+            
+            const http = new XMLHttpRequest();
+            http.open('<%= isUpdatePage ? 'POST' : 'PUT' %>', '/tweet/<%= id %><%= isUpdatePage ? '/update' : '' %>', true);
+            http.setRequestHeader('Content-type','application/json; charset=utf-8');
+            http.onreadystatechange = function () {
+                if (http.readyState === 4 && http.status === 200) {
+                location.replace('/tweet/<%= id %>');
                 }
+            };
+            http.send(JSON.stringify({
+                name: searchedItems[i].name,
+                phone: searchedItems[i].phone,
+                address: searchedItems[i].address,
+                road_address: searchedItems[i].road_address,
+                mapx: searchedItems[i].mapx,
+                mapy: searchedItems[i].mapy,
+            }));
+            }
+        };
+
+        const placesListUl = document.getElementById('placesList');
+
+        const onMouseOver = (index) => {
+            markers[index].setIcon({
+            url: '/img/sp_pins_spot_v3_over.png',
+            size: new naver.maps.Size(24, 37),
+            anchor: new naver.maps.Point(12, 37),
+            origin: new naver.maps.Point(index * 29, 0)
+            });
+            infowindows[index].open(map, markers[index]);
+        };
+
+        const onMouseOut = (index) => {
+            markers[index].setIcon({
+            url: '/img/sp_pins_spot_v3.png',
+            size: new naver.maps.Size(24, 37),
+            anchor: new naver.maps.Point(12, 37),
+            origin: new naver.maps.Point(index * 29, 0)
+            });
+            infowindows[index].close();
+        };
+
+        const getSearchData = (keyword) => {
+            httpGet(`/api/searchLocal?query=${encodeURIComponent(keyword)}&tweet_id=<%= id %>`, ({total, items}) => {
+            markers.forEach(marker => marker.setMap(null));
+            markers.length = 0;
+            infowindows.length = 0;
+            searchedItems.length = 0;
+
+            removeAllChildNods(placesListUl);
+
+            if (total === 0) {
+                const itemLi = document.createElement('li');
+                itemLi.innerHTML = `앗! '${keyword}'에 대한 검색 결과가 없네요,,, 😢`;
+                placesListUl.appendChild(itemLi);
+                return;
+            }
+
+            const bounds = [];
+            
+            items.forEach((item, index) => {
+                searchedItems.push(item);
                 
+                // 마커 표시
+                const position = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(item.mapx, item.mapy));
+                bounds.push(position);
                 const marker = new naver.maps.Marker({
-                    position,
-                    map,
-                    title: row.name
+                position,
+                map,
+                icon: {
+                    url: '/img/sp_pins_spot_v3.png',
+                    size: new naver.maps.Size(24, 37),
+                    anchor: new naver.maps.Point(12, 37),
+                    origin: new naver.maps.Point(index * 29, 0)
+                }
+                });
+
+                const infowindow = new naver.maps.InfoWindow({
+                content: `${item.name} (${item.phone})`
+                });
+
+                naver.maps.Event.addListener(marker, "mouseover", () => onMouseOver(index));
+
+                naver.maps.Event.addListener(marker, "mouseout", () => onMouseOut(index));
+
+                naver.maps.Event.addListener(marker, "click", function(e) {
+                putData(index);
                 });
 
                 markers.push(marker);
-                const index = markers.length - 1;
+                infowindows.push(infowindow);
 
-                naver.maps.Event.addListener(marker, "click", function(e) {                    
-                    params.tweet_id = row.tweet_id;
-                    updateCurrentUrl(params);
+                // 검색 데이터 표시
+                const itemLi = getListItem(index, item);
+                itemLi.onclick = (e) => putData(index);
+                itemLi.onmouseover = (e) => {
+                map.panTo(position);
+                onMouseOver(index);
+                };
+                itemLi.onmouseout = () => onMouseOut(index);
 
-                    if (currentMarkerIndex >= 0) {
-                        markers[currentMarkerIndex].setIcon();
-                    }
-                    marker.setIcon('/img/pin_over.png');
-                    currentMarkerIndex = index;
-
-                    tweetDataDiv.style.display = 'block';
-
-                    tweetNameH.innerHTML = `<a href="/tweet/${row.tweet_id}">${row.name}</a>`;
-                    tweetRoadAddressSpan.textContent = row.road_address;
-                    tweetAddressSpan.textContent = `(${row.address})`;
-                    tweetPhoneSpan.textContent = row.phone;
-
-                    tweetRoadAddressBtn.style.display = row.road_address ? 'inline-block' : 'none';
-                    tweetAddressBtn.style.display = row.address ? 'inline-block' : 'none';
-                    tweetPhoneBtn.style.display = row.phone ? 'inline-block' : 'none';
-                    tweetRoadAddressBtn.setAttribute('data-clipboard-text', row.road_address);
-                    tweetAddressBtn.setAttribute('data-clipboard-text', row.address);
-                    tweetPhoneBtn.setAttribute('data-clipboard-text', row.phone);
-
-                    routeKakaoA.setAttribute('data-value', `http://map.daum.net/link/to/${row.name},${position.lat()},${position.lng()}`);
-                    routeNaverA.setAttribute('data-value', `https://map.naver.com/?menu=route&etext=${row.name}&elat=${position.lat()}&elng=${position.lng()}`);                    
-                });
+                placesListUl.appendChild(itemLi);
             });
-        });
+            
+            // 페이지 번호 표시
+
+            map.fitBounds(bounds);
+            });
+        };
+
+        const searchPlaces = () => {
+            const keyword = document.getElementById('keyword').value.replace(/^\s+|\s+$/g, '');
+            if (!keyword) {
+                alert('키워드를 입력해주세요!');
+                return false;
+            }
+            
+            placesListUl.innerText = '검색 중...';
+            placesListUl.scrollTop = 0;
+            getSearchData(keyword);
+        };
+
+        // 검색결과 항목을 Element로 반환하는 함수입니다
+        function getListItem(index, item) {
+            const el = document.createElement('li');
+            let itemStr = `<span class="markerbg marker_${index + 1}"></span>
+            <div class="info">
+                <h5>${item.name}</h5>`;
+            if (item.road_address) {
+                itemStr += `<span>${item.road_address}</span><span class="jibun gray">${item.address}</span>`;
+            } else {
+                itemStr += `<span>${item.address}</span>`;
+            }
+            itemStr += `<span class="tel">${item.phone}</span></div>`;
+            el.innerHTML = itemStr;
+            el.className = 'item';
+            return el;
+        }
+
+        // 검색결과 목록 하단에 페이지번호를 표시는 함수입니다
+        function displayPagination(pagination) {
+            var paginationEl = document.getElementById('pagination'),
+                fragment = document.createDocumentFragment(),
+                i;
+            // 기존에 추가된 페이지번호를 삭제합니다
+            while (paginationEl.hasChildNodes()) {
+                paginationEl.removeChild (paginationEl.lastChild);
+            }
+            for (i=1; i<=pagination.last; i++) {
+                var el = document.createElement('a');
+                el.href = "#";
+                el.innerHTML = i;
+                if (i===pagination.current) {
+                    el.className = 'on';
+                } else {
+                    el.onclick = (function(i) {
+                        return function() {
+                            pagination.gotoPage(i);
+                        }
+                    })(i);
+                }
+                fragment.appendChild(el);
+            }
+            paginationEl.appendChild(fragment);
+        }
+        // 검색결과 목록의 자식 Element를 제거하는 함수입니다
+        function removeAllChildNods(el) {
+            while (el.hasChildNodes()) {
+            el.removeChild (el.lastChild);
+            }
+        }
+    <% } %>
+
+    let isGabolgaWait = false;
+    let gabolgaHideTimer;
+    const gabolga = () => {
+        <% if (req.session.isLogin) { %>
+        if (!isGabolgaWait) {
+            isGabolgaWait = true;
+            gabolgaBtnEl.classList.add('loading');
+            httpGet(`/api/gabolga/${tweetSwitchBtnEl.dataset.tweetId}`, ({isGabolga}) => {
+                if (isGabolga) {
+                    gtag('event', '가볼가하기');
+                    gabolgaBtnEl.classList.add('on');
+                } else {
+                    gtag('event', '가볼가취소');
+                    gabolgaBtnEl.classList.remove('on');
+                }
+                <% if (locals.isMyMapPage) { %>
+                    markers[gabolgaBtnEl.dataset.markerIndex].setVisible(isGabolga);
+                <% } else { %>
+                    goMyMapBtnEl.style.display = isGabolga ? 'block' : 'none';
+                <% } %>
+
+                isGabolgaWait = false;
+                gabolgaBtnEl.classList.remove('loading');
+
+                if (gabolgaHideTimer) {
+                    clearTimeout(gabolgaHideTimer);
+                }
+                gabolgaBtnEl.dataset.content = isGabolga ? '가볼가 했어요!' : '가볼가 취소했어요';
+                $('#gabolga_btn').popover({trigger: 'manual'}).popover('show');
+                gabolgaHideTimer = setTimeout(() => $('#gabolga_btn').popover('hide'), 1000);
+            });
+        }
+        <% } else { %>
+        location.href = '/login?refer=<%= req.originalUrl %>';
+        <% } %>
+        return true;
     };
 
-    naver.maps.Event.addListener(map, 'click', function(e) {
-        params.tweet_id = undefined;
-        updateCurrentUrl(params);
-
-        tweetDataDiv.style.display = 'none';
-        if (currentMarkerIndex >= 0) {
-            markers[currentMarkerIndex].setIcon();
-            currentMarkerIndex = -1;
+    let lastOpenedTweetId = null;
+    const toggleTweet = () => {
+        tweetSwitchBtnEl.classList.remove('loading');
+        const tweetDiv = document.getElementById(tweetSwitchBtnEl.dataset.tweetId);
+        if (lastOpenedTweetId) {
+            lastOpenedTweetId = null;
+            tweetDiv.style.display = 'none';
+            return;
         }
-    });
-    naver.maps.Event.addListener(map, 'idle', function(e) {
-        const center = map.getCenter();
-        params.lat = center.lat();
-        params.lng = center.lng();
-        params.zoom = map.getZoom();
-        updateCurrentUrl(params);
 
-        drawMarkers();
-    });
+        lastOpenedTweetId = tweetSwitchBtnEl.dataset.tweetId;
+        if (tweetDiv) {
+            tweetDiv.style.display = 'block';
+            return;
+        }
+        
+        tweetSwitchBtnEl.classList.add('loading');
+        httpGet(`/api/tweet/${tweetSwitchBtnEl.dataset.tweetId}`, (html) => {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            if (!lastOpenedTweetId) {
+                div.firstChild.style.display = 'none';
+            }
+            mapDiv.appendChild(div);
+            tweetSwitchBtnEl.classList.remove('loading');
+        }, 'html');
+    };
+
+    const closeTweet = () => {
+        if (lastOpenedTweetId) {
+            document.getElementById(lastOpenedTweetId).style.display = 'none';
+            lastOpenedTweetId = null;
+        }
+    }
 
     const getGeo = function() {
         if (navigator.geolocation) {
@@ -197,18 +565,43 @@
                 lat = position.coords.latitude;
                 lng = position.coords.longitude;
                 map.panTo(new naver.maps.LatLng(lat, lng));
+            }, options={
+                enableHighAccuracy: true, 
             });
         } 
     };
 
-    window.onload = drawMarkers;
+    function setKakaoShare(mapx, mapy) {
+        return Kakao.Link.createDefaultButton({
+            container: '#kakao-link-btn',
+            objectType: 'feed',
+            content: {
+                title: tweetNameEl.textContent,
+                description: tweetRoadAddressEl.textContent || tweetAddressEl.textContent,
+                imageUrl: `https://gabolga.gamjaa.com/api/thumb?mapx=${mapx}&mapy=${mapy}`,
+                link: {
+                    mobileWebUrl: 'https://gabolga.gamjaa.com/tweet/' + tweetSwitchBtnEl.dataset.tweetId,
+                    webUrl: 'https://gabolga.gamjaa.com/tweet/' + tweetSwitchBtnEl.dataset.tweetId
+                }
+            },
+            buttons: [
+                {
+                title: '자세히 보기',
+                link: {
+                    mobileWebUrl: 'https://gabolga.gamjaa.com/tweet/' + tweetSwitchBtnEl.dataset.tweetId,
+                    webUrl: 'https://gabolga.gamjaa.com/tweet/' + tweetSwitchBtnEl.dataset.tweetId
+                }
+                },
+            ]
+        });
+    };
 
-    function httpGet(url, callback) {
+    function httpGet(url, callback, type='json') {
         const http = new XMLHttpRequest();
         http.open('GET', url, true);
         http.onreadystatechange = function () {
             if (http.readyState === 4 && typeof callback === 'function') {
-                callback(JSON.parse(http.responseText));
+                callback(type === 'json' ? JSON.parse(http.responseText) : http.response);
             }
         };
         http.send();

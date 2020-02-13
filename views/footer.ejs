@@ -1,2 +1,72 @@
+</main>
+<div id="mobile_margin" class="mobile" style="height: 48px;"></div>
+<footer>
+    <div id="menu" class="navbar fixed-bottom navbar-light bg-light mobile">
+        <a href="/my/map" class="<%= req.path === '/map' ? 'active' : '' %>">
+            <svg class="bi bi-map" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M17.817 2.613A.5.5 0 0118 3v13a.5.5 0 01-.402.49l-5 1a.502.502 0 01-.196 0L7.5 16.51l-4.902.98A.5.5 0 012 17V4a.5.5 0 01.402-.49l5-1a.5.5 0 01.196 0l4.902.98 4.902-.98a.5.5 0 01.415.103zM12 4.41l-4-.8v11.98l4 .8V4.41zm1 11.98l4-.8V3.61l-4 .8v11.98zm-6-.8V3.61l-4 .8v11.98l4-.8z" clip-rule="evenodd"/>
+            </svg>
+        </a>
+        <a href="/my/list" class="my_list_btn <%= req.path === '/list' ? 'active' : '' %>" <% if (locals.unregTweetsCount > 0) { %> data-toggle="popover" data-placement="top" data-content="장소가 미등록된 트윗이 <%= locals.unregTweetsCount %>개 있어요. 😢"<% } %>>
+            <svg class="bi bi-list-ul" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M7 13.5a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm-3 1a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+            </svg><% if (locals.unregTweetsCount > 0) { %><span class="badge badge-danger"><%= locals.unregTweetsCount %></span><% } %>
+        </a>
+        <a href="#" onclick="initSearchForm()">
+            <svg class="bi bi-search" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M12.442 12.442a1 1 0 011.415 0l3.85 3.85a1 1 0 01-1.414 1.415l-3.85-3.85a1 1 0 010-1.415z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M8.5 14a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM15 8.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" clip-rule="evenodd"/>
+            </svg>
+        </a>
+        <a href="/random">
+            <svg class="bi bi-bootstrap-reboot" width="1em" height="1em" viewBox="-5 -5 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 9v-3c-1 0-3.308-.188-4.506 2.216l-4.218 8.461c-1.015 2.036-3.094 3.323-5.37 3.323h-3.906v-2h3.906c1.517 0 2.903-.858 3.58-2.216l4.218-8.461c1.356-2.721 3.674-3.323 6.296-3.323v-3l6 4-6 4zm-9.463 1.324l1.117-2.242c-1.235-2.479-2.899-4.082-5.748-4.082h-3.906v2h3.906c2.872 0 3.644 2.343 4.631 4.324zm15.463 8.676l-6-4v3c-3.78 0-4.019-1.238-5.556-4.322l-1.118 2.241c1.021 2.049 2.1 4.081 6.674 4.081v3l6-4z"/>
+            </svg>
+        </a>
+    </div>
+    <form action="/api/search" id="searchForm" class="navbar fixed-bottom navbar-light bg-light mobile" style="display: none">
+        <input id="searchInput" name="url" class="form-control" required minlength="2" placeholder="트윗 링크 / 검색어" aria-label="트윗 링크 / 검색어" style="height: 32px; width: 100%; max-width: calc(100% - 100px);">
+        <a href="#" onclick="document.getElementById('searchForm').submit()">
+            <svg class="bi bi-search" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M12.442 12.442a1 1 0 011.415 0l3.85 3.85a1 1 0 01-1.414 1.415l-3.85-3.85a1 1 0 010-1.415z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M8.5 14a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM15 8.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" clip-rule="evenodd"/>
+            </svg>
+        </a>
+        <a href="#" onclick="document.getElementById('searchForm').style.display = 'none'; document.getElementById('menu').style.display = 'flex';">
+            <svg class="bi bi-x" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M5.646 5.646a.5.5 0 000 .708l8 8a.5.5 0 00.708-.708l-8-8a.5.5 0 00-.708 0z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M14.354 5.646a.5.5 0 010 .708l-8 8a.5.5 0 01-.708-.708l8-8a.5.5 0 01.708 0z" clip-rule="evenodd"/>
+            </svg>
+        </a>
+    </form>
+</footer>
+<script>
+    const initSearchForm = () => {
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchInput').focus();
+        document.getElementById('searchForm').style.display = 'flex';
+    };
+
+    <% if (req.query.q) { %>
+        initSearchForm();
+        document.getElementById('searchInput').value = '<%= req.query.q %>';
+    <% } %>
+
+    $(function () {
+        $('.copy').popover().click(() => {
+            setTimeout(function () {
+                $('.copy').popover('hide');
+            }, 500);
+        });
+    });
+
+    <% if (locals.unregTweetsCount > 0) { %>
+    $('.my_list_btn:visible').popover({
+        trigger: 'manual'
+    }).popover('show');
+    setTimeout(() => $('.my_list_btn').popover('hide'), 2000);
+    <% } %>
+</script>
 </body>
 </html>
