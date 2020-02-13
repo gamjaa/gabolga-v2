@@ -16,6 +16,8 @@ const apiRouter = require('./routes/api');
 const webhookRouter = require('./routes/bot');
 const adminRouter = require('./routes/admin');
 
+process.title = 'gabolga';
+
 const app = express();
 app.enable('trust proxy');
 
