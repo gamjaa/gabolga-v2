@@ -50,8 +50,8 @@ body.include_map main {height: calc(100% - 56px); position: relative;}
 #list tr {cursor: pointer;}
 
 /* 트윗 */
-.tweet {position: absolute; top: auto; bottom: 115px; left: 10px; right: auto; z-index: 1; max-width: 550px; width: calc(100% - 20px); max-height: calc(100vh - 180px); text-align: left; padding: 10px; cursor: pointer;}
-.tweet article {max-height: calc(100vh - 190px); overflow-y: auto;}
+.tweet {position: absolute; top: auto; bottom: 115px; left: 10px; right: auto; z-index: 1; max-width: 550px; width: calc(100% - 20px); max-height: calc(var(--vh, 1vh) * 100 - 180px); text-align: left; padding: 10px; cursor: pointer;}
+.tweet article {max-height: calc(var(--vh, 1vh) * 100 - 190px); overflow-y: auto;}
 
 .bottom_btn {position: absolute; padding: 10px; bottom: 55px; border-radius: 50%; z-index: 1; display: none;}
 .bottom_btn svg {width: 32px; height: 32px; color: #999;}
@@ -66,8 +66,8 @@ body.include_map main {height: calc(100% - 56px); position: relative;}
 #tweet_switch.loading .bi, #gabolga_btn.loading .bi {display: none;}
 #tweet_switch.loading .spinner-border, #gabolga_btn.loading .spinner-border {display: block;}
 
-#more_popup {position: absolute; left: auto; right: 10px; top: auto; bottom: 110px; z-index: 2; max-height: calc(100vh - 180px);}
-#more_popup main {max-height: calc(100vh - 190px); overflow-y: auto;}
+#more_popup {position: absolute; left: auto; right: 10px; top: auto; bottom: 110px; z-index: 2; max-height: calc(var(--vh, 1vh) * 100 - 180px);}
+#more_popup main {max-height: calc(var(--vh, 1vh) * 100 - 190px); overflow-y: auto;}
 #more_popup .arrow {right: 15px;}
 #more_popup a {display: block; padding: 10px;}
 #more_popup a:hover {background-color: #e2e6ea; cursor: pointer;}
@@ -114,7 +114,8 @@ footer a.active svg, footer a:hover svg {color: #007bff;}
     #navbarNav .navbar-nav {flex-direction: row;}
     #navbarNav .navbar-nav .nav-link {padding-right: .5rem; padding-left: .5rem;}
 
-    .tweet {bottom: 75px;}
+    .tweet {bottom: 75px; max-height: calc(100vh - 180px);}
+    .tweet article {max-height: calc(100vh - 190px);}
     .bottom_btn {
         bottom: 20px;
     }    
@@ -126,7 +127,8 @@ footer a.active svg, footer a:hover svg {color: #007bff;}
         left: 130px;
         right: unset;
     }
-    #more_popup {left: 128px; right: auto; bottom: 75px;}
+    #more_popup {left: 128px; right: auto; bottom: 75px; max-height: calc(100vh - 180px);}
+    #more_popup main {max-height: calc(100vh - 190px);}
     #more_popup .arrow {left: 15px;}
 }
 @media screen and (max-width: 999px) {
