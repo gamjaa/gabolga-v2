@@ -41,15 +41,17 @@
     </form>
 </footer>
 <script>
-    const initSearchForm = () => {
+    const initSearchForm = (isFocusInput = true) => {
         document.getElementById('menu').style.display = 'none';
         document.getElementById('searchInput').value = '';
-        document.getElementById('searchInput').focus();
         document.getElementById('searchForm').style.display = 'flex';
+        if (isFocusInput) {
+            document.getElementById('searchInput').focus();
+        }
     };
 
     <% if (req.query.q) { %>
-        initSearchForm();
+        initSearchForm(false);
         document.getElementById('searchInput').value = '<%= req.query.q %>';
     <% } %>
 
