@@ -61,7 +61,7 @@
         </div>
     </div>
 
-    <a href="#" id="tweet_switch" class="bottom_btn btn btn-light" data-tweet-id="<%= locals.id %>" onclick="toggleTweet()">
+    <a href="javascript:;" id="tweet_switch" class="bottom_btn btn btn-light" data-tweet-id="<%= locals.id %>" onclick="toggleTweet()">
     <svg class="bi" xmlns="http://www.w3.org/2000/svg" fill="currentcolor" viewBox="0 0 24 24"><path d="M22.295 13.047c-.047 1.527.851 3.718 1.661 5.312-1.875-.338-4.429-1.032-5.991-1.768.061-.751.05-1.444-.185-2.404.86.531 1.212.76 2.871 1.29-.418-1.515-.364-2.183-.333-3.183.834-1 1.683-2.07 1.683-3.943-.001-3.501-3.59-6.351-8.001-6.351-4.035 0-7.367 2.387-7.908 5.473-.721.122-1.414.31-2.071.559.205-4.683 4.847-8.032 9.979-8.032 5.281 0 10 3.526 10 8.352 0 1.71-.615 3.39-1.705 4.695zm-6.295 2.945c0 3.422-3.218 6.652-7.941 6.652-.854 0-1.761-.106-2.704-.336-1.118.685-3.585 1.377-5.319 1.692.648-1.277 1.366-3.029 1.329-4.252-.872-1.042-1.365-2.387-1.365-3.756 0-3.86 3.775-6.681 8-6.681 4.199 0 8 2.802 8 6.681zm-6.609 3.008l-.797-1h-2.594v-3h1l-1.5-2-1.5 2h1v4h4.391zm2.609-2h-1v-4h-4.422l.797 1h2.625v3h-1l1.5 2 1.5-2z"/></svg>
     <div class="spinner-border text-primary" role="status">
         <span class="sr-only">Loading...</span>
@@ -69,7 +69,7 @@
     </a>
 
     <% if (locals.isMyMapPage || locals.isRegistered) { %>
-    <a href="#" id="gabolga_btn" class="bottom_btn btn btn-light <%= locals.isGabolga ? 'on' : '' %>" data-placement="top" onclick="gabolga()">
+    <a href="javascript:;" id="gabolga_btn" class="bottom_btn btn btn-light <%= locals.isGabolga ? 'on' : '' %>" data-placement="top" onclick="gabolga()">
     <svg class="bi bi-heart" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" d="M10 4.748l-.717-.737C7.6 2.281 4.514 2.878 3.4 5.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.837-3.362.314-4.385-1.114-2.175-4.2-2.773-5.883-1.043L10 4.748zM10 17C-5.333 6.868 5.279-1.04 9.824 3.143c.06.055.119.112.176.171a3.12 3.12 0 01.176-.17C14.72-1.042 25.333 6.867 10 17z" clip-rule="evenodd"/>
     </svg>
@@ -80,7 +80,7 @@
         <span class="sr-only">Loading...</span>
     </div>
     </a>
-    <a href="#" id="more_btn" class="bottom_btn btn btn-light" onclick="toggleMore()">
+    <a href="javascript:;" id="more_btn" class="bottom_btn btn btn-light" onclick="toggleMore()">
     <svg class="bi bi-three-dots" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" d="M5 11.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" clip-rule="evenodd"/>
     </svg>
@@ -88,11 +88,11 @@
 
     <div id="more_popup" class="popup popover bs-popover-top" style="display: none;">
         <main>
-            <a href="#" onclick="location.href = `/tweet/${tweetSwitchBtnEl.dataset.tweetId}/update`">수정 요청</a>
-            <a href="#" id="route_kakao" title="카카오맵(다음 지도) 길찾기" onclick="gtag('event', '다음길찾기'); window.open(this.dataset.url, '_blank')">카카오맵 길찾기</a>
-            <a href="#" id="route_naver" onclick="gtag('event', '네이버길찾기'); window.open(this.dataset.url, '_blank')">네이버 지도 길찾기</a>
+            <a href="javascript:;" onclick="location.href = `/tweet/${tweetSwitchBtnEl.dataset.tweetId}/update`">수정 요청</a>
+            <a href="javascript:;" id="route_kakao" title="카카오맵(다음 지도) 길찾기" onclick="gtag('event', '다음길찾기'); window.open(this.dataset.url, '_blank')">카카오맵 길찾기</a>
+            <a href="javascript:;" id="route_naver" onclick="gtag('event', '네이버길찾기'); window.open(this.dataset.url, '_blank')">네이버 지도 길찾기</a>
             <a id="kakao-link-btn" href="javascript:;">카카오톡으로 공유</a>
-            <a href="#" id="share_url" class="copy" data-clipboard-text="https://gabolga.gamjaa.com/tweet/<%= locals.id %>" data-toggle="popover" data-placement="top" data-content="복사됨">URL 복사</a>
+            <a href="javascript:;" id="share_url" class="copy" data-clipboard-text="https://gabolga.gamjaa.com/tweet/<%= locals.id %>" data-toggle="popover" data-placement="top" data-content="복사됨">URL 복사</a>
         </main>
         <div class="arrow"></div>
     </div>
@@ -474,7 +474,7 @@
             }
             for (i=1; i<=pagination.last; i++) {
                 var el = document.createElement('a');
-                el.href = "#";
+                el.href = "javascript:;";
                 el.innerHTML = i;
                 if (i===pagination.current) {
                     el.className = 'on';
