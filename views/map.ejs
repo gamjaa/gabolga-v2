@@ -614,7 +614,8 @@
     };
 
     function setKakaoShare(mapx, mapy) {
-        return Kakao.Link.createDefaultButton({
+        Kakao.Link.cleanup();
+        Kakao.Link.createDefaultButton({
             container: '#kakao-link-btn',
             objectType: 'feed',
             content: {
