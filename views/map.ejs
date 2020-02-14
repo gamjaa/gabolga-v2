@@ -607,7 +607,7 @@
                 lat = position.coords.latitude;
                 lng = position.coords.longitude;
                 map.panTo(new naver.maps.LatLng(lat, lng));
-            }, options={
+            }, undefined, {
                 enableHighAccuracy: true, 
             });
         } 
