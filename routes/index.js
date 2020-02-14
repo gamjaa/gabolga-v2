@@ -12,7 +12,7 @@ const wrapAsync = require('./common/wrapAsync');
 router.get('/', wrapAsync(async (req, res, next) => {
     return res.render('index', { 
         req,
-        title: '트위터 맛집, 지도로 정리해보세요!',
+        title: '가볼까 싶은 트위터 맛집, 지도로 정리해보세요!',
 
         rankedTweets: (await db.query('SELECT * FROM tweet_rank_24h'))[0],
     });
