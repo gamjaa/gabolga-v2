@@ -119,6 +119,10 @@ router.get('/mention-permission', wrapAsync(async (req, res, next) => {
     });
     await Mention.setPermission(data.id_str, isDenied);
 
+    if (!isDenied) {
+        await Mention.sendMentionInQue(data.id_str);
+    }
+
     return res.json({
         result: `${screen_name}(${data.id_str}) 님에게 멘션 ${isDenied ? '거부' : '허용'}`
     });

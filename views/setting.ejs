@@ -70,12 +70,12 @@
     <% if (req.session.user_id === '62192325') { %>
         <h3>관리자 메뉴</h3>
         <div class="input-group">
-            <input type="text" class="form-control" placeholder="twitter screen name" id="screen_name">
+            <input type="text" class="form-control" placeholder="twitter screen name" id="twitter_screen_name">
             <div class="input-group-append">
                 <button class="btn btn-outline-primary" type="button" onclick="setMentionPermission(true)">허락</button>
                 <button class="btn btn-outline-danger" type="button" onclick="setMentionPermission(false)">거부</button>
                 <script>
-                    const screenName = document.getElementById('screen_name');
+                    const screenName = document.getElementById('twitter_screen_name');
                     screenName.oninput = () => {
                         screenName.value = screenName.value.replace(/[^0-9a-zA-Z_]/g, '');
                     };
@@ -90,9 +90,11 @@
                         http.send();
                     }
                     const setMentionPermission = bool => {
-                        httpGet(`/admin/mention-permission?screen_name=${screenName.value}${bool ? '' : '&is_denied=1'}`, ({result}) => {
-                            alert(result);
-                        });
+                        if (confirm(`${bool ? '허락' : '거부'}하시겠습니까?`)) {
+                            httpGet(`/admin/mention-permission?screen_name=${screenName.value}${bool ? '' : '&is_denied=1'}`, ({result}) => {
+                                alert(result);
+                            });
+                        }
                     };
                 </script>
             </div>
