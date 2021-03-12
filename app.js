@@ -33,8 +33,8 @@ app.set('view engine', 'ejs');
 
 app.use(logger(process.env.NODE_ENV === 'development' ? 'dev' : 'common'));
 
-app.use(express.json({ verify: rawBodySaver }));
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ verify: rawBodySaver }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const sessionStore = new mysqlStore(config.get('db'));
