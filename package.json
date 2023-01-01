@@ -6,7 +6,7 @@
     "start": "NODE_ENV=production forever start forever.json"
   },
   "dependencies": {
-    "config": "^2.0.1",
+    "config": "^3.3.8",
     "crypto-js": "^3.1.9-1",
     "debug": "~2.6.9",
     "ejs": "~2.5.7",
